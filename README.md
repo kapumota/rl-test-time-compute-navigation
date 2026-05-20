@@ -11,7 +11,7 @@ El proyecto traduce ideas recientes de razonamiento estructurado en modelos de l
 La versión final compara **RLoT**, **GoT** y **Adaptive Budget** sobre el mismo mapa, la misma semilla y las mismas condiciones iniciales. También genera automáticamente GIFs, capturas, CSV, figuras, heatmaps y configuraciones de replay determinista para que los experimentos puedan ser inspeccionados, reproducidos y presentados en GitHub o en una exposición técnica.
 
 
-#### Demo visual
+#### Demostración visual
 
 ![Comparación lado a lado](docs/assets/final_demo/episode_comparison.gif)
 
@@ -155,7 +155,7 @@ El directorio `.agente/` es local y no debe subirse a GitHub.
 
 El proyecto separa las dependencias por perfil de uso.
 
-Para ejecutar tests, generar figuras y correr la demo sin interfaz gráfica pesada:
+Para ejecutar tests, generar figuras y correr la demostración sin interfaz gráfica pesada:
 
 ```bash
 python -m pip install -r requirements-ci.txt
@@ -319,7 +319,7 @@ Por eso, la lectura correcta es la siguiente: este repositorio no entrega un sta
 ```text
 .
 ├── README.md                         # Presentación principal del proyecto
-├── demo_final.py                     # Comando único para generar la demo final
+├── demo_final.py                     # Comando único para generar la demostración final
 ├── generate_demo_artifacts.py        # Generador de GIF, CSV, figuras y snapshots
 ├── analyze_overthinking.py           # Métricas de coste, progreso y sobrepensamiento
 ├── gui_dashboard.py                  # UI Kivy y controlador testeable sin Kivy
@@ -363,7 +363,7 @@ Deben conservarse los assets de presentación ubicados en `docs/assets/`, porque
 
 - Python 3.10 o superior.
 - Entorno virtual local recomendado: `.agente/`.
-- Demo reproducible sin APIs externas.
+- Demostración reproducible sin APIs externas.
 - Tests ligeros, sin entrenamiento pesado obligatorio.
 - Documentación principal en español.
 - Firmas públicas de funciones y módulos en inglés.
