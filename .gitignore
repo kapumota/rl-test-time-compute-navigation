@@ -1,0 +1,29 @@
+# Python
+*.egg-info/
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+
+# Resultados y modelos generados
+results/**/*.csv
+results/**/*.json
+results/**/*.gif
+results/**/*.mp4
+results/**/*.png
+models/*.pt
+models/*.pth
+models/*.json
+!results/.gitkeep
+!results/figures/.gitkeep
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Notebooks temporales
+.ipynb_checkpoints/

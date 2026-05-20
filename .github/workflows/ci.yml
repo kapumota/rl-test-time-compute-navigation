@@ -1,0 +1,93 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  pruebas:
+    name: Pruebas en Python ${{ matrix.python-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.10', '3.11']
+
+    steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v6
+
+      - name: Configurar Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+          cache-dependency-path: requirements-ci.txt
+
+      - name: Instalar dependencias ligeras
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-ci.txt
+
+      - name: Compilar archivos Python
+        run: python -m compileall .
+
+      - name: Ejecutar pruebas
+        run: pytest -q
+
+      - name: Prueba rápida de Fase 3
+        run: |
+          python run_reasoning_experiments.py \
+            --eval-episodes 1 \
+            --max-steps 20 \
+            --methods 'Best-of-N actions' 'Adaptive rollout budget' \
+            --results results/ci_reasoning_eval.csv \
+            --summary results/ci_reasoning_summary.csv
+
+
+      - name: Prueba rápida de Fase 4
+        run: |
+          python run_evaluation_suite.py \
+            --eval-episodes 1 \
+            --max-steps 20 \
+            --scenarios facil sensores_ruidosos \
+            --methods 'Best-of-N actions' 'Adaptive rollout budget' \
+            --results results/ci_evaluation_suite.csv \
+            --summary results/ci_evaluation_summary.csv
+
+
+      - name: Prueba rápida de Fase 5
+        run: |
+          python run_rlot_got_experiments.py \
+            --eval-episodes 1 \
+            --max-steps 15 \
+            --results results/ci_rlot_got_eval.csv \
+            --summary results/ci_rlot_got_summary.csv
+
+      - name: Entrenamiento mínimo de RLoT
+        run: |
+          python train_rlot_navigator.py \
+            --episodes 1 \
+            --max-steps 10 \
+            --output models/ci_rlot_navigator.json
+
+      - name: Prueba rápida de Fase 6/7 sin Kivy
+        run: |
+          python - <<'PY'
+          from gui_dashboard import ReasoningDashboardController
+          controller = ReasoningDashboardController(max_steps=10)
+          controller.step()
+          print(controller.metrics_text())
+          PY
+
+      - name: Generar demo final rápida
+        run: |
+          python demo_final.py --preset quick --steps 6 --output results/ci_demo
+          test -f results/ci_demo/DEMO_REPORT.md
+          test -f results/ci_demo/episode_comparison.gif
+          test -f results/ci_demo/overthinking_summary.csv

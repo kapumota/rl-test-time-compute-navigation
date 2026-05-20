@@ -1,0 +1,18 @@
+cff-version: 1.2.0
+title: "¿Cuándo debe pensar un agente RL?"
+message: "Si usas este proyecto, cita este repositorio."
+type: software
+authors:
+  - family-names: Lara-Avila
+    given-names: Cesar
+version: 1.0.0
+date-released: 2026-05-20
+license: MIT
+abstract: "Entorno reproducible de navegación autónoma para estudiar cómputo adaptativo en tiempo de inferencia, RL-of-Thoughts, Graph-of-Thoughts, heatmaps de pensamiento y análisis de sobrepensamiento."
+keywords:
+  - reinforcement-learning
+  - test-time-compute
+  - graph-of-thoughts
+  - tree-of-thoughts
+  - adaptive-compute
+  - navigation

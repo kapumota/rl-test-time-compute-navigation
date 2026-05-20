@@ -1,0 +1,11 @@
+{
+  "csv": "docs/assets/final_demo/comparison_trace.csv",
+  "overthinking_csv": "docs/assets/final_demo/overthinking_summary.csv",
+  "overthinking_json": "docs/assets/final_demo/overthinking_summary.json",
+  "snapshot": "docs/assets/final_demo/dashboard_snapshot.json",
+  "replay": "docs/assets/final_demo/replay_config.json",
+  "gif": "docs/assets/final_demo/episode_comparison.gif",
+  "reward_figure": "docs/assets/final_demo/figures/reward_by_method.png",
+  "cost_figure": "docs/assets/final_demo/figures/compute_cost_by_method.png",
+  "heatmap_figure": "docs/assets/final_demo/figures/thought_heatmap.png"
+}

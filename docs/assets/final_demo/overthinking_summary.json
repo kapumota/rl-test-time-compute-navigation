@@ -1,0 +1,47 @@
+[
+  {
+    "metodo": "Adaptive rollout budget",
+    "pasos": 120,
+    "recompensa_total": -61.69999999999995,
+    "costo_total": 1983.0,
+    "costo_promedio": 16.525,
+    "distancia_inicial": 832.3460693359375,
+    "distancia_final": 460.9642639160156,
+    "progreso_distancia": 371.3818054199219,
+    "recompensa_por_100_compute": -3.111447302067572,
+    "progreso_por_100_compute": 18.728280656577,
+    "compute_por_progreso": 5.339518444523203,
+    "indice_sobrepensamiento": 1.0,
+    "advertencia": "normal"
+  },
+  {
+    "metodo": "GoT Navigation Graph",
+    "pasos": 120,
+    "recompensa_total": -43.099999999999994,
+    "costo_total": 38887.0,
+    "costo_promedio": 324.05833333333334,
+    "distancia_inicial": 832.3460693359375,
+    "distancia_final": 647.8893432617188,
+    "progreso_distancia": 184.45672607421875,
+    "recompensa_por_100_compute": -0.11083395479208988,
+    "progreso_por_100_compute": 0.47434033500712,
+    "compute_por_progreso": 210.8190946875706,
+    "indice_sobrepensamiento": 39.48279173074303,
+    "advertencia": "posible_sobrepensamiento"
+  },
+  {
+    "metodo": "RL-of-Thoughts Navigator",
+    "pasos": 120,
+    "recompensa_total": -57.299999999999955,
+    "costo_total": 240.0,
+    "costo_promedio": 2.0,
+    "distancia_inicial": 832.3460693359375,
+    "distancia_final": 425.97161865234375,
+    "progreso_distancia": 406.37445068359375,
+    "recompensa_por_100_compute": -23.874999999999982,
+    "progreso_por_100_compute": 169.32268778483072,
+    "compute_por_progreso": 0.5905883098612069,
+    "indice_sobrepensamiento": 0.11060703619574143,
+    "advertencia": "eficiente"
+  }
+]

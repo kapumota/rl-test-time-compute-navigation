@@ -1,0 +1,77 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "agente-rl-pensamiento"
+version = "1.0.0"
+description = "¿Cuándo debe pensar un agente RL? Cómputo adaptativo en tiempo de inferencia para navegación autónoma."
+readme = "README.md"
+requires-python = ">=3.10"
+authors = [
+  {name = "Cesar Lara-Avila"}
+]
+dependencies = [
+  "numpy>=1.24"
+]
+
+[project.scripts]
+demo-final = "demo_final:main"
+generate-demo-artifacts = "generate_demo_artifacts:main"
+analyze-overthinking = "analyze_overthinking:main"
+
+[project.optional-dependencies]
+full = [
+  "matplotlib>=3.8",
+  "gymnasium>=0.29",
+  "torch>=2.7.0",
+  "pytest>=8.0",
+  "imageio>=2.34",
+  "imageio-ffmpeg>=0.4.9"
+]
+dev = [
+  "pytest>=8.0",
+  "imageio>=2.34",
+  "imageio-ffmpeg>=0.4.9"
+]
+gui = [
+  "kivy>=2.3.1",
+  "imageio>=2.34",
+  "imageio-ffmpeg>=0.4.9"
+]
+
+[tool.setuptools]
+py-modules = [
+  "analyze_overthinking",
+  "astar_planner",
+  "baseline_env",
+  "deep_q_learning",
+  "demo_final",
+  "double_dqn",
+  "evaluation_scenarios",
+  "generate_demo_artifacts",
+  "gui_dashboard",
+  "map",
+  "plot_baselines",
+  "plot_evaluation_suite",
+  "plot_reasoning",
+  "ppo_agent",
+  "reasoning_policies",
+  "research_catalog",
+  "rlot_got_navigation",
+  "run_baselines",
+  "run_evaluation_suite",
+  "run_reasoning_experiments",
+  "run_rlot_got_experiments",
+  "train_dqn",
+  "train_reasoning_controller",
+  "train_rlot_navigator"
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 120
