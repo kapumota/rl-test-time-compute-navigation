@@ -65,7 +65,6 @@ def test_graph_of_waypoints_returns_valid_action() -> None:
 
 def test_adaptive_budget_increases_with_difficulty() -> None:
     """El presupuesto adaptativo debe asignar más cómputo a estados difíciles."""
-    env = build_default_env(seed=17, max_steps=80)
     policy = AdaptiveRolloutBudget(AdaptiveBudgetConfig())
 
     easy_budget = policy.select_budget(0.10)
