@@ -50,3 +50,11 @@ Cambios iniciales de la Fase A:
 - Se agrega `tiempo_decision_ms_total` y `tiempo_decision_ms_promedio`.
 - Se mantiene `costo_decision_total` y `costo_decision_promedio` como compatibilidad histórica.
 - Se agregan pruebas para validar que la suite exporta y resume las nuevas métricas.
+
+#### A2.3 - Métricas de decisión en baselines
+
+- Se integra `measure_decision` en la evaluación de baselines.
+- Se agrega `costo_decision_pasos_total` y `costo_decision_pasos_promedio`.
+- Se agrega `tiempo_decision_ms_total` y `tiempo_decision_ms_promedio`.
+- Se mantiene `costo_decision_total` y `costo_decision_promedio` como compatibilidad histórica.
+- Se agrega una prueba de fuente para validar la integración sin importar módulos dependientes de PyTorch.
