@@ -8,7 +8,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from collections import deque
 from pathlib import Path
-from typing import Deque, Dict, Iterable, List, Optional, Tuple
+from typing import Deque, Iterable, List, Optional
 import random
 
 import numpy as np
