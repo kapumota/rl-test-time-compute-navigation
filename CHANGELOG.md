@@ -42,3 +42,11 @@ Cambios iniciales de la Fase A:
 - Se agrega `tiempo_decision_ms_total` y `tiempo_decision_ms_promedio`.
 - Se mantiene `costo_decision_total` y `costo_decision_promedio` como compatibilidad histórica.
 - Se ajustan pruebas de determinismo para no comparar tiempo real entre corridas.
+
+#### A2.2 - Métricas de decisión en suite de evaluación
+
+- Se integra `measure_decision` en la evaluación por escenarios.
+- Se agrega `costo_decision_pasos_total` y `costo_decision_pasos_promedio`.
+- Se agrega `tiempo_decision_ms_total` y `tiempo_decision_ms_promedio`.
+- Se mantiene `costo_decision_total` y `costo_decision_promedio` como compatibilidad histórica.
+- Se agregan pruebas para validar que la suite exporta y resume las nuevas métricas.

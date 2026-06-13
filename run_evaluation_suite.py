@@ -23,6 +23,7 @@ from typing import Any, Callable, Dict, Iterable, List, Tuple
 import numpy as np
 
 from baseline_env import TITULO_PROYECTO
+from decision_metrics import build_decision_metrics, measure_decision
 from evaluation_scenarios import apply_dynamic_goal_if_needed, build_scenario_env, list_scenarios
 from reasoning_policies import normalize_policy_result
 from run_reasoning_experiments import build_policies
@@ -62,12 +63,25 @@ def evaluate_policy_on_scenario(
         goals_reached = 0
         reached_goal_at_least_once = False
         decision_cost_total = 0.0
+        decision_time_ms_total = 0.0
         reasoning_counts: Dict[str, int] = {}
         dynamic_goal_changes = 0
 
         for _step_index in range(max_steps):
-            action, decision_info = normalize_policy_result(policy(env, state))
-            decision_cost_total += float(decision_info.get("costo_decision", 1.0))
+            measurement = measure_decision(
+                lambda: normalize_policy_result(policy(env, state)),
+                simulated_cost_steps=1.0,
+            )
+            action, decision_info = measurement.value
+            decision_metrics = build_decision_metrics(
+                simulated_cost_steps=decision_info.get(
+                    "costo_decision",
+                    measurement.simulated_cost_steps,
+                ),
+                real_time_ms=measurement.real_time_ms,
+            )
+            decision_cost_total += float(decision_metrics["costo_decision_pasos"])
+            decision_time_ms_total += float(decision_metrics["tiempo_decision_ms"])
             reasoning_method = str(decision_info.get("metodo_razonamiento", method_name))
             reasoning_counts[reasoning_method] = reasoning_counts.get(reasoning_method, 0) + 1
 
@@ -111,6 +125,10 @@ def evaluate_policy_on_scenario(
                 "densidad_arena": float(instance.sand_density),
                 "ruido_sensores_std": float(instance.config.sensor_noise_std),
                 "dropout_sensores": float(instance.config.sensor_dropout_prob),
+                "costo_decision_pasos_total": float(decision_cost_total),
+                "costo_decision_pasos_promedio": float(decision_cost_total / steps),
+                "tiempo_decision_ms_total": float(decision_time_ms_total),
+                "tiempo_decision_ms_promedio": float(decision_time_ms_total / steps),
                 "costo_decision_total": float(decision_cost_total),
                 "costo_decision_promedio": float(decision_cost_total / steps),
                 "conteo_razonamiento": str(reasoning_counts),
@@ -133,6 +151,10 @@ def summarize(rows: List[Dict[str, float | str]]) -> List[Dict[str, float | str]
         "colisiones_borde",
         "distancia_final",
         "densidad_arena",
+        "costo_decision_pasos_total",
+        "costo_decision_pasos_promedio",
+        "tiempo_decision_ms_total",
+        "tiempo_decision_ms_promedio",
         "costo_decision_total",
         "costo_decision_promedio",
     ]
