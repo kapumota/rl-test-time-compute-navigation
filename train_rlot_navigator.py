@@ -9,7 +9,6 @@ ACT, CHAIN, TREE, GRAPH o REFLECT.
 from __future__ import annotations
 
 import argparse
-import random
 from pathlib import Path
 from typing import Dict, List
 
@@ -17,12 +16,7 @@ import numpy as np
 
 from baseline_env import TITULO_PROYECTO, build_default_env
 from rlot_got_navigation import RLoTNavigator, RLoTNavigatorConfig
-
-
-def set_global_seed(seed: int) -> None:
-    """Fija semillas para entrenamiento reproducible."""
-    random.seed(seed)
-    np.random.seed(seed)
+from reproducibility import SeedPlan, set_global_seed
 
 
 def train(
@@ -36,6 +30,8 @@ def train(
     cost_penalty: float,
 ) -> RLoTNavigator:
     """Entrena el navegador RLoT con Q-learning tabular contextual."""
+    set_global_seed(seed)
+    seed_plan = SeedPlan(seed)
     navigator = RLoTNavigator(
         RLoTNavigatorConfig(
             epsilon=epsilon,
@@ -48,8 +44,8 @@ def train(
     episode_returns: List[float] = []
 
     for episode in range(1, episodes + 1):
-        env = build_default_env(seed=seed + 10_000 + episode, max_steps=max_steps)
-        state = env.reset(seed=seed + 20_000 + episode)
+        env = build_default_env(seed=seed_plan.env_seed(episode), max_steps=max_steps)
+        state = env.reset(seed=seed_plan.reset_seed(episode))
         total_reward = 0.0
         used_blocks: Dict[str, int] = {}
 

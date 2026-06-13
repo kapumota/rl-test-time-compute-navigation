@@ -17,30 +17,20 @@ from __future__ import annotations
 
 import argparse
 import csv
-import random
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Tuple
 
 import numpy as np
-import torch
 
 from astar_planner import AStarConfig, AStarPlanner
 from baseline_env import TITULO_PROYECTO, build_default_env
 from deep_q_learning import DQNAgent
 from double_dqn import DoubleDQNAgent, DoubleDQNConfig
 from ppo_agent import PPOAgent, PPOConfig
+from reproducibility import SeedPlan, set_global_seed
 
 PolicyResult = int | Tuple[int, Dict[str, Any]]
 Policy = Callable[[Any, np.ndarray], PolicyResult]
-
-
-def set_global_seed(seed: int) -> None:
-    """Fija semillas para facilitar comparaciones reproducibles."""
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(seed)
 
 
 def unpack_policy_result(result: PolicyResult) -> Tuple[int, Dict[str, Any]]:
@@ -60,10 +50,11 @@ def evaluate_policy(
 ) -> List[Dict[str, float | str]]:
     """Evalúa una política y devuelve métricas por episodio."""
     rows: List[Dict[str, float | str]] = []
+    seed_plan = SeedPlan(seed)
 
     for episode in range(1, eval_episodes + 1):
-        env = build_default_env(seed=seed + 10_000 + episode, max_steps=max_steps)
-        state = env.reset(seed=seed + 20_000 + episode)
+        env = build_default_env(seed=seed_plan.env_seed(episode), max_steps=max_steps)
+        state = env.reset(seed=seed_plan.reset_seed(episode))
         total_reward = 0.0
         sand_steps = 0
         border_collisions = 0

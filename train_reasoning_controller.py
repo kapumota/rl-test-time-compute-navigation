@@ -13,25 +13,17 @@ from __future__ import annotations
 
 import argparse
 import csv
-import random
 from pathlib import Path
 from typing import Dict, List
 
-import numpy as np
-
 from baseline_env import TITULO_PROYECTO, build_default_env
+from reproducibility import SeedPlan, set_global_seed
 from reasoning_policies import (
     LearnedReasoningController,
     ReasoningControllerConfig,
     build_reasoning_strategies,
     normalize_policy_result,
 )
-
-
-def set_global_seed(seed: int) -> None:
-    """Fija semillas de Python y NumPy."""
-    random.seed(seed)
-    np.random.seed(seed)
 
 
 def save_csv(rows: List[Dict[str, float | str]], path: Path) -> None:
@@ -53,6 +45,8 @@ def train_controller(
     metrics_path: Path,
 ) -> LearnedReasoningController:
     """Entrena el controlador como un bandido contextual sobre recompensas reales."""
+    set_global_seed(seed)
+    seed_plan = SeedPlan(seed)
     strategies = build_reasoning_strategies()
     controller = LearnedReasoningController(
         strategies=strategies,
@@ -62,8 +56,8 @@ def train_controller(
     rows: List[Dict[str, float | str]] = []
 
     for episode in range(1, episodes + 1):
-        env = build_default_env(seed=seed + episode, max_steps=max_steps)
-        state = env.reset(seed=seed + 10_000 + episode)
+        env = build_default_env(seed=seed_plan.env_seed(episode), max_steps=max_steps)
+        state = env.reset(seed=seed_plan.reset_seed(episode))
         total_reward = 0.0
         reached_goal = False
         strategy_counts: Dict[str, int] = {}

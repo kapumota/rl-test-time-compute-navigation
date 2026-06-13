@@ -21,3 +21,10 @@ Cambios iniciales de la Fase A:
 - Se propaga la semilla base hacia el controlador aprendido y RLoT.
 - Se reemplazan offsets manuales de evaluación por `SeedPlan`.
 - Se agregan pruebas de traza lógica reproducible para política aleatoria y RLoT.
+
+#### A1.2 - Propagación de seed en entrenamiento y dashboard
+
+- Se propaga `SeedPlan` a baselines y scripts de entrenamiento.
+- Se centraliza `set_global_seed` para entrenamiento DQN, RLoT y controlador de razonamiento.
+- Se propaga seed al dashboard para reconstruir políticas y resets reproducibles.
+- Se agrega prueba de traza reproducible para baseline aleatorio.
