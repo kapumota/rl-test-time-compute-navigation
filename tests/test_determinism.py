@@ -6,6 +6,16 @@ from reproducibility import SeedPlan
 from run_reasoning_experiments import build_policies, evaluate_policy
 
 
+def strip_real_time_metrics(
+    rows: list[dict[str, float | str]],
+) -> list[dict[str, float | str]]:
+    """Retira métricas de tiempo real para comparar trazas deterministas."""
+    return [
+        {key: value for key, value in row.items() if not key.startswith("tiempo_decision_ms")}
+        for row in rows
+    ]
+
+
 def test_seed_plan_generates_stable_values() -> None:
     """El plan de semillas debe producir valores estables y separados."""
     first_plan = SeedPlan(123)
@@ -46,7 +56,7 @@ def test_random_policy_trace_is_reproducible_with_same_seed() -> None:
         seed=77,
     )
 
-    assert first_rows == second_rows
+    assert strip_real_time_metrics(first_rows) == strip_real_time_metrics(second_rows)
 
 
 def test_rlot_trace_is_reproducible_with_same_seed() -> None:
@@ -69,4 +79,27 @@ def test_rlot_trace_is_reproducible_with_same_seed() -> None:
         seed=2024,
     )
 
-    assert first_rows == second_rows
+    assert strip_real_time_metrics(first_rows) == strip_real_time_metrics(second_rows)
+
+
+def test_reasoning_rows_include_decision_metrics() -> None:
+    """Las filas de reasoning deben incluir costo lógico y tiempo real."""
+    rows = evaluate_policy(
+        "Política aleatoria",
+        random_policy,
+        eval_episodes=1,
+        max_steps=10,
+        seed=101,
+    )
+
+    row = rows[0]
+
+    assert "costo_decision_pasos_total" in row
+    assert "costo_decision_pasos_promedio" in row
+    assert "tiempo_decision_ms_total" in row
+    assert "tiempo_decision_ms_promedio" in row
+    assert "costo_decision_total" in row
+    assert "costo_decision_promedio" in row
+
+    assert float(row["costo_decision_pasos_total"]) >= 0.0
+    assert float(row["tiempo_decision_ms_total"]) >= 0.0

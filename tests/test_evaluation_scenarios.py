@@ -57,6 +57,20 @@ def test_evaluation_suite_quick_run(tmp_path: Path) -> None:
     assert len(summary) == 1
     assert summary[0]["escenario"] == "facil"
 
+    row = rows[0]
+    assert "costo_decision_pasos_total" in row
+    assert "costo_decision_pasos_promedio" in row
+    assert "tiempo_decision_ms_total" in row
+    assert "tiempo_decision_ms_promedio" in row
+    assert "costo_decision_total" in row
+    assert "costo_decision_promedio" in row
+    assert float(row["costo_decision_pasos_total"]) >= 0.0
+    assert float(row["tiempo_decision_ms_total"]) >= 0.0
+
+    summary_row = summary[0]
+    assert "costo_decision_pasos_total_media" in summary_row
+    assert "tiempo_decision_ms_total_media" in summary_row
+
     target = tmp_path / "eval.csv"
     save_csv(rows, target)
     with target.open("r", encoding="utf-8") as file:

@@ -24,6 +24,7 @@ import numpy as np
 
 from astar_planner import AStarConfig, AStarPlanner
 from baseline_env import TITULO_PROYECTO, build_default_env
+from decision_metrics import build_decision_metrics, measure_decision
 from deep_q_learning import DQNAgent
 from double_dqn import DoubleDQNAgent, DoubleDQNConfig
 from ppo_agent import PPOAgent, PPOConfig
@@ -56,16 +57,29 @@ def evaluate_policy(
         env = build_default_env(seed=seed_plan.env_seed(episode), max_steps=max_steps)
         state = env.reset(seed=seed_plan.reset_seed(episode))
         total_reward = 0.0
+        decision_cost_total = 0.0
+        decision_time_ms_total = 0.0
         sand_steps = 0
         border_collisions = 0
         reached_goal = False
-        decision_cost_total = 0.0
         plan_length_accum = 0.0
         plan_length_count = 0
 
         for _ in range(max_steps):
-            action, decision_info = unpack_policy_result(policy(env, state))
-            decision_cost_total += float(decision_info.get("costo_decision", 1.0))
+            measurement = measure_decision(
+                lambda: unpack_policy_result(policy(env, state)),
+                simulated_cost_steps=1.0,
+            )
+            action, decision_info = measurement.value
+            decision_metrics = build_decision_metrics(
+                simulated_cost_steps=decision_info.get(
+                    "costo_decision",
+                    measurement.simulated_cost_steps,
+                ),
+                real_time_ms=measurement.real_time_ms,
+            )
+            decision_cost_total += float(decision_metrics["costo_decision_pasos"])
+            decision_time_ms_total += float(decision_metrics["tiempo_decision_ms"])
             if "longitud_plan" in decision_info:
                 plan_length_accum += float(decision_info["longitud_plan"])
                 plan_length_count += 1
@@ -90,6 +104,10 @@ def evaluate_policy(
                 "meta_alcanzada": float(reached_goal),
                 "pasos_en_arena": float(sand_steps),
                 "colisiones_borde": float(border_collisions),
+                "costo_decision_pasos_total": float(decision_cost_total),
+                "costo_decision_pasos_promedio": float(decision_cost_total / steps),
+                "tiempo_decision_ms_total": float(decision_time_ms_total),
+                "tiempo_decision_ms_promedio": float(decision_time_ms_total / steps),
                 "costo_decision_total": float(decision_cost_total),
                 "costo_decision_promedio": float(decision_cost_total / steps),
                 "longitud_plan_promedio": float(plan_length_accum / max(plan_length_count, 1)),
@@ -109,6 +127,10 @@ def summarize(rows: List[Dict[str, float | str]]) -> List[Dict[str, float | str]
         "meta_alcanzada",
         "pasos_en_arena",
         "colisiones_borde",
+        "costo_decision_pasos_total",
+        "costo_decision_pasos_promedio",
+        "tiempo_decision_ms_total",
+        "tiempo_decision_ms_promedio",
         "costo_decision_total",
         "costo_decision_promedio",
         "longitud_plan_promedio",
