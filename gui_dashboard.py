@@ -24,6 +24,7 @@ import math
 import numpy as np
 
 from evaluation_scenarios import apply_dynamic_goal_if_needed, build_scenario_env, list_scenarios
+from decision_metrics import build_decision_metrics, measure_decision
 from map import NavigationEnv
 from reasoning_policies import greedy_goal_policy, normalize_policy_result
 from run_reasoning_experiments import build_policies
@@ -53,6 +54,7 @@ class DashboardState:
     pasos_en_arena: int = 0
     colisiones_borde: int = 0
     costo_total: float = 0.0
+    tiempo_decision_ms_total: float = 0.0
     accion: int = 0
     bloque_razonamiento: str = "ACT"
     metodo_razonamiento: str = "Acción directa"
@@ -63,6 +65,21 @@ class DashboardState:
     def costo_promedio(self) -> float:
         """Devuelve el costo promedio por decisión."""
         return float(self.costo_total / max(self.pasos, 1))
+
+    @property
+    def costo_decision_pasos_total(self) -> float:
+        """Devuelve el costo lógico acumulado."""
+        return float(self.costo_total)
+
+    @property
+    def costo_decision_pasos_promedio(self) -> float:
+        """Devuelve el costo lógico promedio."""
+        return float(self.costo_promedio)
+
+    @property
+    def tiempo_decision_ms_promedio(self) -> float:
+        """Devuelve el tiempo real promedio por decisión."""
+        return float(self.tiempo_decision_ms_total / max(self.pasos, 1))
 
 
 @dataclass
@@ -79,6 +96,7 @@ class AgentTrack:
     pasos_en_arena: int = 0
     colisiones_borde: int = 0
     costo_total: float = 0.0
+    tiempo_decision_ms_total: float = 0.0
     accion: int = 0
     bloque_razonamiento: str = "ACT"
     metodo_razonamiento: str = ""
@@ -93,6 +111,21 @@ class AgentTrack:
         """Devuelve el costo promedio por decisión para la pista."""
         return float(self.costo_total / max(self.pasos, 1))
 
+    @property
+    def costo_decision_pasos_total(self) -> float:
+        """Devuelve el costo lógico acumulado de la pista."""
+        return float(self.costo_total)
+
+    @property
+    def costo_decision_pasos_promedio(self) -> float:
+        """Devuelve el costo lógico promedio de la pista."""
+        return float(self.costo_promedio)
+
+    @property
+    def tiempo_decision_ms_promedio(self) -> float:
+        """Devuelve el tiempo real promedio de la pista."""
+        return float(self.tiempo_decision_ms_total / max(self.pasos, 1))
+
     def to_summary(self) -> Dict[str, Any]:
         """Convierte la pista a un resumen serializable."""
         distance = float(np.linalg.norm(self.env.position - self.env.goal))
@@ -102,6 +135,10 @@ class AgentTrack:
             "recompensa_total": float(self.recompensa_total),
             "costo_total": float(self.costo_total),
             "costo_promedio": float(self.costo_promedio),
+            "costo_decision_pasos_total": float(self.costo_decision_pasos_total),
+            "costo_decision_pasos_promedio": float(self.costo_decision_pasos_promedio),
+            "tiempo_decision_ms_total": float(self.tiempo_decision_ms_total),
+            "tiempo_decision_ms_promedio": float(self.tiempo_decision_ms_promedio),
             "metas_alcanzadas": int(self.metas_alcanzadas),
             "pasos_en_arena": int(self.pasos_en_arena),
             "colisiones_borde": int(self.colisiones_borde),
@@ -184,14 +221,27 @@ class ReasoningDashboardController:
             return self.step_comparison()
 
         policy = self.policies.get(self.state.metodo, greedy_goal_policy)
-        action, decision_info = normalize_policy_result(policy(self.env, self.observation))
+        measurement = measure_decision(
+            lambda: normalize_policy_result(policy(self.env, self.observation)),
+            simulated_cost_steps=1.0,
+        )
+        action, decision_info = measurement.value
+        decision_metrics = build_decision_metrics(
+            simulated_cost_steps=decision_info.get(
+                "costo_decision",
+                measurement.simulated_cost_steps,
+            ),
+            real_time_ms=measurement.real_time_ms,
+        )
+        decision_info = {**decision_info, **decision_metrics}
         position_before = self.env.position.copy()
         next_state, reward, done, env_info = self.env.step(action)
         dynamic_goal_changed = apply_dynamic_goal_if_needed(self.scenario_instance)
         if dynamic_goal_changed:
             env_info["meta_dinamica_cambiada"] = True
 
-        cost = float(decision_info.get("costo_decision", 1.0))
+        cost = float(decision_info.get("costo_decision_pasos", 1.0))
+        decision_time_ms = float(decision_info.get("tiempo_decision_ms", 0.0))
         self._record_thought_cost(self.env, position_before, cost, self.state.metodo)
         self._update_visible_state(action, reward, decision_info, env_info)
         self._record_path_event(
@@ -203,6 +253,7 @@ class ReasoningDashboardController:
             action=action,
             decision_info=decision_info,
             env_info=env_info,
+            decision_time_ms=decision_time_ms,
         )
         self.observation = next_state
 
@@ -335,6 +386,10 @@ class ReasoningDashboardController:
             "pasos": self.state.pasos,
             "recompensa_total": self.state.recompensa_total,
             "costo_promedio": self.state.costo_promedio,
+            "costo_decision_pasos_total": self.state.costo_decision_pasos_total,
+            "costo_decision_pasos_promedio": self.state.costo_decision_pasos_promedio,
+            "tiempo_decision_ms_total": self.state.tiempo_decision_ms_total,
+            "tiempo_decision_ms_promedio": self.state.tiempo_decision_ms_promedio,
             "bloque_razonamiento": self.state.bloque_razonamiento,
             "posicion": self.env.position.astype(float).round(3).tolist(),
             "meta": self.env.goal.astype(float).round(3).tolist(),
@@ -681,6 +736,7 @@ class ReasoningDashboardController:
         self.state.pasos_en_arena = 0
         self.state.colisiones_borde = 0
         self.state.costo_total = 0.0
+        self.state.tiempo_decision_ms_total = 0.0
         self.state.accion = 0
         self.state.bloque_razonamiento = "ACT"
         self.state.metodo_razonamiento = self.state.metodo
@@ -698,7 +754,10 @@ class ReasoningDashboardController:
         self.state.accion = int(action)
         self.state.recompensa_total += float(reward)
         self.state.pasos = int(self.env.step_count)
-        self.state.costo_total += float(decision_info.get("costo_decision", 1.0))
+        self.state.costo_total += float(
+            decision_info.get("costo_decision_pasos", decision_info.get("costo_decision", 1.0))
+        )
+        self.state.tiempo_decision_ms_total += float(decision_info.get("tiempo_decision_ms", 0.0))
         self.state.metodo_razonamiento = str(
             decision_info.get("metodo_razonamiento", self.state.metodo)
         )
@@ -756,6 +815,7 @@ class ReasoningDashboardController:
         )
         self.state.recompensa_total = float(primary.recompensa_total)
         self.state.costo_total = float(primary.costo_total)
+        self.state.tiempo_decision_ms_total = float(primary.tiempo_decision_ms_total)
         self.state.accion = int(primary.accion)
         self.state.bloque_razonamiento = primary.bloque_razonamiento
         self.state.metodo_razonamiento = "Comparación lado a lado"
@@ -774,18 +834,32 @@ class ReasoningDashboardController:
         if track.done:
             return
         policy = self.policies.get(track.method, greedy_goal_policy)
-        action, decision_info = normalize_policy_result(policy(track.env, track.observation))
+        measurement = measure_decision(
+            lambda: normalize_policy_result(policy(track.env, track.observation)),
+            simulated_cost_steps=1.0,
+        )
+        action, decision_info = measurement.value
+        decision_metrics = build_decision_metrics(
+            simulated_cost_steps=decision_info.get(
+                "costo_decision",
+                measurement.simulated_cost_steps,
+            ),
+            real_time_ms=measurement.real_time_ms,
+        )
+        decision_info = {**decision_info, **decision_metrics}
         position_before = track.env.position.copy()
         next_state, reward, done, env_info = track.env.step(action)
         dynamic_goal_changed = apply_dynamic_goal_if_needed(track.scenario_instance)
         if dynamic_goal_changed:
             env_info["meta_dinamica_cambiada"] = True
 
-        cost = float(decision_info.get("costo_decision", 1.0))
+        cost = float(decision_info.get("costo_decision_pasos", 1.0))
+        decision_time_ms = float(decision_info.get("tiempo_decision_ms", 0.0))
         track.accion = int(action)
         track.recompensa_total += float(reward)
         track.pasos = int(track.env.step_count)
         track.costo_total += cost
+        track.tiempo_decision_ms_total += decision_time_ms
         track.metodo_razonamiento = str(decision_info.get("metodo_razonamiento", track.method))
         track.bloque_razonamiento = str(
             decision_info.get("bloque_razonamiento", track.metodo_razonamiento)
@@ -809,6 +883,7 @@ class ReasoningDashboardController:
             action=action,
             decision_info=decision_info,
             env_info=env_info,
+            decision_time_ms=decision_time_ms,
         )
         event["recompensa_total"] = float(track.recompensa_total)
         event["costo_total"] = float(track.costo_total)
@@ -864,6 +939,7 @@ class ReasoningDashboardController:
         action: int,
         decision_info: Mapping[str, Any],
         env_info: Mapping[str, Any],
+        decision_time_ms: float = 0.0,
     ) -> Dict[str, Any]:
         """Registra una fila de trayectoria para CSV/demo."""
         distance = float(np.linalg.norm(env.position - env.goal))
@@ -875,6 +951,8 @@ class ReasoningDashboardController:
             "recompensa_paso": float(reward),
             "recompensa_total": float(getattr(self.state, "recompensa_total", 0.0)),
             "costo_decision": float(cost),
+            "costo_decision_pasos": float(cost),
+            "tiempo_decision_ms": float(decision_time_ms),
             "costo_total": float(getattr(self.state, "costo_total", 0.0)),
             "accion": int(action),
             "bloque_razonamiento": str(
@@ -1062,7 +1140,9 @@ class ReasoningDashboardController:
         plt.figure(figsize=(7, 4))
         for method, rows in grouped.items():
             steps = [int(row["paso"]) for row in rows]
-            costs = np.cumsum([float(row["costo_decision"]) for row in rows])
+            costs = np.cumsum(
+                [float(row.get("costo_decision_pasos", row["costo_decision"])) for row in rows]
+            )
             plt.plot(steps, costs, label=method)
         plt.xlabel("Paso")
         plt.ylabel("Costo acumulado de decisión")
