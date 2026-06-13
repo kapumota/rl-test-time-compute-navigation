@@ -8,3 +8,9 @@ Cambios iniciales de la Fase A:
 - Se incorporan comandos de Makefile para instalación de desarrollo, pruebas, cobertura, typing, lint y verificación de formato.
 - Se actualiza requirements-ci.txt para reproducir el entorno de validación local y de CI.
 - Se inicia el registro formal de cambios del proyecto con versionado semántico preliminar.
+
+#### A1.0 - Base de seed determinista
+
+- Se agrega `reproducibility.py` con `SeedPlan`, `set_global_seed`, `build_numpy_rng` y `build_python_rng`.
+- Se reemplaza el muestreo de acciones aleatorias por un generador controlado por la seed del entorno.
+- Se agregan pruebas iniciales para validar semillas derivadas y muestreo reproducible.
