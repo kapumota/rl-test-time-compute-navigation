@@ -111,7 +111,10 @@ def normalize_policy_result(result: PolicyResult) -> Tuple[int, Dict[str, Any]]:
 
 def random_policy(env: NavigationEnv, state: np.ndarray) -> Tuple[int, Dict[str, Any]]:
     """Política aleatoria simple usada como respaldo de bajo costo."""
-    return env.sample_action(), {"mensaje": "Acción aleatoria usada como respaldo.", "costo_decision": 1.0}
+    return env.sample_action(), {
+        "mensaje": "Acción aleatoria usada como respaldo.",
+        "costo_decision": 1.0,
+    }
 
 
 def greedy_goal_policy(env: NavigationEnv, state: np.ndarray) -> Tuple[int, Dict[str, Any]]:
@@ -180,13 +183,19 @@ def rollout_score(
             total_score += discount * config.terminal_bonus
 
     # Moldeado suave: entre dos rutas con recompensas similares, se prefiere quedar más cerca de la meta.
-    distance = float(info.get("distancia_a_meta", np.linalg.norm(simulated_env.position - simulated_env.goal)))
+    distance = float(
+        info.get("distancia_a_meta", np.linalg.norm(simulated_env.position - simulated_env.goal))
+    )
     total_score -= config.distance_penalty * distance
 
-    return float(total_score), int(simulated_steps), {
-        "distancia_final_simulada": distance,
-        "pasos_simulados": float(simulated_steps),
-    }
+    return (
+        float(total_score),
+        int(simulated_steps),
+        {
+            "distancia_final_simulada": distance,
+            "pasos_simulados": float(simulated_steps),
+        },
+    )
 
 
 class BestOfNActions:
@@ -207,13 +216,17 @@ class BestOfNActions:
 
         for action in action_scores:
             for _ in range(max(self.config.samples_per_action, 1)):
-                score, simulated_steps, _ = rollout_score(env, action, self.config, self.rollout_policy)
+                score, simulated_steps, _ = rollout_score(
+                    env, action, self.config, self.rollout_policy
+                )
                 action_scores[action].append(score)
                 total_simulated_steps += simulated_steps
                 if total_simulated_steps >= self.config.max_simulated_steps:
                     break
 
-        mean_scores = {action: float(np.mean(scores)) for action, scores in action_scores.items() if scores}
+        mean_scores = {
+            action: float(np.mean(scores)) for action, scores in action_scores.items() if scores
+        }
         selected_action = max(mean_scores, key=mean_scores.get)
         info = {
             "mensaje": "Acción elegida con Best-of-N actions.",
@@ -246,7 +259,9 @@ class TreeOfActions:
             if bool(info.get("meta_alcanzada", False)):
                 score += 2.0
             if not done:
-                score += self.config.discount * self._value(simulated_env, next_state, self.config.depth - 1)
+                score += self.config.discount * self._value(
+                    simulated_env, next_state, self.config.depth - 1
+                )
             score -= self.config.distance_penalty * float(info.get("distancia_a_meta", 0.0))
             scores[action] = score
 
@@ -327,7 +342,9 @@ class GraphOfWaypoints:
         current_cell = self.planner._position_to_cell(env, env.position)
         target_cell = self._choose_next_waypoint(current_cell, waypoints)
         target_position = self.planner._cell_to_position(env, target_cell)
-        desired_angle = math.degrees(math.atan2(target_position[1] - env.position[1], target_position[0] - env.position[0]))
+        desired_angle = math.degrees(
+            math.atan2(target_position[1] - env.position[1], target_position[0] - env.position[0])
+        )
         angle_error = self.planner._normalize_angle(desired_angle - env.angle)
 
         if abs(angle_error) <= self.config.turn_tolerance_degrees:
@@ -348,7 +365,9 @@ class GraphOfWaypoints:
         }
         return int(action), info
 
-    def _choose_next_waypoint(self, current_cell: Tuple[int, int], waypoints: Sequence[Tuple[int, int]]) -> Tuple[int, int]:
+    def _choose_next_waypoint(
+        self, current_cell: Tuple[int, int], waypoints: Sequence[Tuple[int, int]]
+    ) -> Tuple[int, int]:
         """Escoge el primer waypoint que aún no coincide con la celda actual."""
         for waypoint in waypoints:
             if waypoint != current_cell:
@@ -382,10 +401,22 @@ class AdaptiveRolloutBudget:
     def select_budget(self, difficulty: float) -> RolloutConfig:
         """Convierte dificultad estimada en profundidad y número de muestras."""
         if difficulty >= self.config.high_threshold:
-            return RolloutConfig(depth=self.config.high_depth, samples_per_action=self.config.high_samples, discount=self.config.discount)
+            return RolloutConfig(
+                depth=self.config.high_depth,
+                samples_per_action=self.config.high_samples,
+                discount=self.config.discount,
+            )
         if difficulty >= self.config.medium_threshold:
-            return RolloutConfig(depth=self.config.medium_depth, samples_per_action=self.config.medium_samples, discount=self.config.discount)
-        return RolloutConfig(depth=self.config.low_depth, samples_per_action=self.config.low_samples, discount=self.config.discount)
+            return RolloutConfig(
+                depth=self.config.medium_depth,
+                samples_per_action=self.config.medium_samples,
+                discount=self.config.discount,
+            )
+        return RolloutConfig(
+            depth=self.config.low_depth,
+            samples_per_action=self.config.low_samples,
+            discount=self.config.discount,
+        )
 
     def select_action(self, env: NavigationEnv, state: np.ndarray) -> Tuple[int, Dict[str, Any]]:
         """Selecciona acción usando más cómputo solo cuando el estado parece difícil."""
@@ -413,9 +444,13 @@ class LearnedReasoningController:
     ) -> None:
         self.config = config or ReasoningControllerConfig()
         self.strategies = dict(strategies)
-        self.strategy_names = tuple(name for name in self.config.strategy_names if name in self.strategies)
+        self.strategy_names = tuple(
+            name for name in self.config.strategy_names if name in self.strategies
+        )
         if not self.strategy_names:
-            raise ValueError("Debes proporcionar al menos una estrategia válida para el controlador.")
+            raise ValueError(
+                "Debes proporcionar al menos una estrategia válida para el controlador."
+            )
         self.rng = random.Random(self.config.seed)
         self.feature_size = 8
         self.weights = np.zeros((len(self.strategy_names), self.feature_size), dtype=np.float32)
@@ -428,7 +463,9 @@ class LearnedReasoningController:
         """Convierte un estado en características para seleccionar estrategia."""
         orientation = float(abs(state[0]))
         sensors = np.asarray(state[1:4], dtype=np.float32)
-        distance = float(np.linalg.norm(env.position - env.goal)) / max(float(env.width + env.height), 1.0)
+        distance = float(np.linalg.norm(env.position - env.goal)) / max(
+            float(env.width + env.height), 1.0
+        )
         features = np.array(
             [
                 1.0,
@@ -444,7 +481,9 @@ class LearnedReasoningController:
         )
         return features
 
-    def select_strategy(self, env: NavigationEnv, state: np.ndarray, explore: bool = False) -> StrategyTrace:
+    def select_strategy(
+        self, env: NavigationEnv, state: np.ndarray, explore: bool = False
+    ) -> StrategyTrace:
         """Elige una estrategia por epsilon-greedy sobre un modelo lineal."""
         features = self.featurize(env, state)
         predictions = self.weights @ features
@@ -453,9 +492,13 @@ class LearnedReasoningController:
         else:
             index = int(np.argmax(predictions))
         strategy = self.strategy_names[index]
-        return StrategyTrace(strategy=strategy, features=features, prediction=float(predictions[index]))
+        return StrategyTrace(
+            strategy=strategy, features=features, prediction=float(predictions[index])
+        )
 
-    def select_action(self, env: NavigationEnv, state: np.ndarray, explore: bool = False) -> Tuple[int, Dict[str, Any]]:
+    def select_action(
+        self, env: NavigationEnv, state: np.ndarray, explore: bool = False
+    ) -> Tuple[int, Dict[str, Any]]:
         """Selecciona estrategia de razonamiento y luego acción de bajo nivel."""
         trace = self.select_strategy(env, state, explore=explore)
         action, info = normalize_policy_result(self.strategies[trace.strategy](env, state))
@@ -487,7 +530,9 @@ class LearnedReasoningController:
         if features.shape != (self.feature_size,):
             return
         prediction = float(info.get("prediccion_controlador", 0.0))
-        self.update(StrategyTrace(strategy=strategy, features=features, prediction=prediction), reward)
+        self.update(
+            StrategyTrace(strategy=strategy, features=features, prediction=prediction), reward
+        )
 
     def save(self, path: str | Path) -> None:
         """Guarda pesos y metadatos del controlador."""
@@ -512,7 +557,9 @@ class LearnedReasoningController:
             )
         weights = np.asarray(payload["weights"], dtype=np.float32)
         if weights.shape != self.weights.shape:
-            raise ValueError(f"Forma de pesos inválida: {weights.shape}, esperada {self.weights.shape}.")
+            raise ValueError(
+                f"Forma de pesos inválida: {weights.shape}, esperada {self.weights.shape}."
+            )
         self.weights = weights
 
 

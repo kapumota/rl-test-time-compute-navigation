@@ -260,9 +260,13 @@ class ReasoningDashboardController:
         self.seed = int(seed)
         self.episode = int(episode)
         self.reset()
-        self.state.mensaje = f"Replay determinista cargado con seed={self.seed}, episodio={self.episode}."
+        self.state.mensaje = (
+            f"Replay determinista cargado con seed={self.seed}, episodio={self.episode}."
+        )
 
-    def enable_comparison(self, enabled: bool = True, methods: Optional[Sequence[str]] = None) -> None:
+    def enable_comparison(
+        self, enabled: bool = True, methods: Optional[Sequence[str]] = None
+    ) -> None:
         """Activa o desactiva la comparación lado a lado en el mismo mapa."""
         if methods is not None:
             missing = [method for method in methods if method not in self.policies]
@@ -375,7 +379,9 @@ class ReasoningDashboardController:
         self.state.metodo = method_name
         if "sand_rle" in payload:
             self.custom_sand_map = self._decode_sand_rle(payload["sand_rle"])
-        methods = tuple(str(method) for method in payload.get("metodos_comparacion", self.comparison_methods))
+        methods = tuple(
+            str(method) for method in payload.get("metodos_comparacion", self.comparison_methods)
+        )
         self.comparison_methods = tuple(method for method in methods if method in self.policies)
         self.comparison_enabled = bool(payload.get("comparacion_activada", False))
         self.reset()
@@ -453,7 +459,9 @@ class ReasoningDashboardController:
                 )
         return cells
 
-    def set_map_editor(self, enabled: bool, tool: Optional[str] = None, radius: Optional[int] = None) -> None:
+    def set_map_editor(
+        self, enabled: bool, tool: Optional[str] = None, radius: Optional[int] = None
+    ) -> None:
         """Activa el editor de mapas y configura herramienta/radio."""
         self.map_editor_enabled = bool(enabled)
         if tool is not None:
@@ -462,9 +470,13 @@ class ReasoningDashboardController:
             self.editor_tool = tool
         if radius is not None:
             self.editor_radius = max(int(radius), 1)
-        self.state.mensaje = f"Editor de mapas {'activado' if enabled else 'desactivado'} ({self.editor_tool})."
+        self.state.mensaje = (
+            f"Editor de mapas {'activado' if enabled else 'desactivado'} ({self.editor_tool})."
+        )
 
-    def paint_obstacle_at(self, x: float, y: float, radius: Optional[int] = None, erase: bool = False) -> None:
+    def paint_obstacle_at(
+        self, x: float, y: float, radius: Optional[int] = None, erase: bool = False
+    ) -> None:
         """Dibuja o borra arena en una coordenada del entorno."""
         radius = int(radius or self.editor_radius)
         value = 0.0 if erase else 1.0
@@ -473,7 +485,9 @@ class ReasoningDashboardController:
             self._paint_sand_disk(track.env, x, y, radius, value)
         self.custom_sand_map = self.env.sand.copy()
         self._refresh_observation_after_map_edit()
-        self.state.mensaje = "Mapa editado: obstáculo borrado." if erase else "Mapa editado: obstáculo pintado."
+        self.state.mensaje = (
+            "Mapa editado: obstáculo borrado." if erase else "Mapa editado: obstáculo pintado."
+        )
 
     def clear_obstacles(self) -> None:
         """Elimina todos los obstáculos del mapa activo."""
@@ -501,7 +515,9 @@ class ReasoningDashboardController:
         data = np.load(Path(path), allow_pickle=False)
         sand = np.asarray(data["sand"], dtype=np.float32)
         if sand.shape != self.env.sand.shape:
-            raise ValueError(f"Mapa incompatible: se esperaba {self.env.sand.shape}, llegó {sand.shape}.")
+            raise ValueError(
+                f"Mapa incompatible: se esperaba {self.env.sand.shape}, llegó {sand.shape}."
+            )
         self.custom_sand_map = np.clip(sand, 0.0, 1.0)
         self._apply_custom_map(self.env)
         for track in self.comparison_tracks.values():
@@ -549,7 +565,11 @@ class ReasoningDashboardController:
         for _ in range(max(int(steps), 1)):
             self.step()
             frames.append(self.render_frame())
-            if self.comparison_enabled and self.comparison_tracks and all(track.done for track in self.comparison_tracks.values()):
+            if (
+                self.comparison_enabled
+                and self.comparison_tracks
+                and all(track.done for track in self.comparison_tracks.values())
+            ):
                 break
         if target.suffix.lower() == ".mp4":
             imageio.mimsave(target, frames, fps=int(fps), macro_block_size=1)
@@ -573,7 +593,9 @@ class ReasoningDashboardController:
         captures_dir.mkdir(parents=True, exist_ok=True)
 
         if seed is not None:
-            self.set_replay_seed(seed, scenario_name=self.state.escenario, method_name=self.state.metodo, episode=1)
+            self.set_replay_seed(
+                seed, scenario_name=self.state.escenario, method_name=self.state.metodo, episode=1
+            )
         self.enable_comparison(True)
 
         imageio = self._load_imageio()
@@ -589,8 +611,12 @@ class ReasoningDashboardController:
 
         csv_path = self.export_comparison_csv(output / "comparison_trace.csv")
         overthinking_summaries = summarize_overthinking(self.episode_log)
-        overthinking_csv_path = write_summary_csv(overthinking_summaries, output / "overthinking_summary.csv")
-        overthinking_json_path = write_summary_json(overthinking_summaries, output / "overthinking_summary.json")
+        overthinking_csv_path = write_summary_csv(
+            overthinking_summaries, output / "overthinking_summary.csv"
+        )
+        overthinking_json_path = write_summary_json(
+            overthinking_summaries, output / "overthinking_summary.json"
+        )
         snapshot_path = self.export_snapshot(output / "dashboard_snapshot.json")
         replay_path = self.export_replay_config(output / "replay_config.json")
         gif_path = output / "episode_comparison.gif"
@@ -607,7 +633,9 @@ class ReasoningDashboardController:
         artifacts.update(self._generate_demo_figures(figures_dir))
         manifest_path = output / "manifest.json"
         manifest_path.write_text(
-            json.dumps({key: str(value) for key, value in artifacts.items()}, indent=2, ensure_ascii=False),
+            json.dumps(
+                {key: str(value) for key, value in artifacts.items()}, indent=2, ensure_ascii=False
+            ),
             encoding="utf-8",
         )
         artifacts["manifest"] = manifest_path
@@ -668,8 +696,12 @@ class ReasoningDashboardController:
         self.state.recompensa_total += float(reward)
         self.state.pasos = int(self.env.step_count)
         self.state.costo_total += float(decision_info.get("costo_decision", 1.0))
-        self.state.metodo_razonamiento = str(decision_info.get("metodo_razonamiento", self.state.metodo))
-        self.state.bloque_razonamiento = str(decision_info.get("bloque_razonamiento", self.state.metodo_razonamiento))
+        self.state.metodo_razonamiento = str(
+            decision_info.get("metodo_razonamiento", self.state.metodo)
+        )
+        self.state.bloque_razonamiento = str(
+            decision_info.get("bloque_razonamiento", self.state.metodo_razonamiento)
+        )
         self.state.mensaje = str(decision_info.get("mensaje", "Decisión ejecutada."))
         self.state.ultima_info = {"decision": dict(decision_info), "entorno": dict(env_info)}
         self.state.pasos_en_arena += int(bool(env_info.get("sobre_arena", False)))
@@ -683,7 +715,9 @@ class ReasoningDashboardController:
             instance = self._build_scenario_instance(self.episode)
             env = instance.env
             self._apply_custom_map(env)
-            observation = env.reset(seed=self._reset_seed(self.episode), options=instance.reset_options)
+            observation = env.reset(
+                seed=self._reset_seed(self.episode), options=instance.reset_options
+            )
             track = AgentTrack(
                 method=method,
                 env=env,
@@ -714,15 +748,23 @@ class ReasoningDashboardController:
         primary = next(iter(self.comparison_tracks.values()))
         self.env = primary.env
         self.observation = primary.observation
-        self.state.pasos = max((track.pasos for track in self.comparison_tracks.values()), default=0)
+        self.state.pasos = max(
+            (track.pasos for track in self.comparison_tracks.values()), default=0
+        )
         self.state.recompensa_total = float(primary.recompensa_total)
         self.state.costo_total = float(primary.costo_total)
         self.state.accion = int(primary.accion)
         self.state.bloque_razonamiento = primary.bloque_razonamiento
         self.state.metodo_razonamiento = "Comparación lado a lado"
-        self.state.pasos_en_arena = sum(track.pasos_en_arena for track in self.comparison_tracks.values())
-        self.state.colisiones_borde = sum(track.colisiones_borde for track in self.comparison_tracks.values())
-        self.state.metas_alcanzadas = sum(track.metas_alcanzadas for track in self.comparison_tracks.values())
+        self.state.pasos_en_arena = sum(
+            track.pasos_en_arena for track in self.comparison_tracks.values()
+        )
+        self.state.colisiones_borde = sum(
+            track.colisiones_borde for track in self.comparison_tracks.values()
+        )
+        self.state.metas_alcanzadas = sum(
+            track.metas_alcanzadas for track in self.comparison_tracks.values()
+        )
 
     def _step_track(self, track: AgentTrack) -> None:
         """Ejecuta un paso de una pista de comparación."""
@@ -742,7 +784,9 @@ class ReasoningDashboardController:
         track.pasos = int(track.env.step_count)
         track.costo_total += cost
         track.metodo_razonamiento = str(decision_info.get("metodo_razonamiento", track.method))
-        track.bloque_razonamiento = str(decision_info.get("bloque_razonamiento", track.metodo_razonamiento))
+        track.bloque_razonamiento = str(
+            decision_info.get("bloque_razonamiento", track.metodo_razonamiento)
+        )
         track.mensaje = str(decision_info.get("mensaje", "Decisión ejecutada."))
         track.ultima_info = {"decision": dict(decision_info), "entorno": dict(env_info)}
         track.pasos_en_arena += int(bool(env_info.get("sobre_arena", False)))
@@ -787,11 +831,23 @@ class ReasoningDashboardController:
         lines.append(f"Mensaje: {self.state.mensaje}")
         return "\n".join(lines)
 
-    def _record_thought_cost(self, env: NavigationEnv, position: np.ndarray, cost: float, method: str) -> None:
+    def _record_thought_cost(
+        self, env: NavigationEnv, position: np.ndarray, cost: float, method: str
+    ) -> None:
         """Acumula costo de decisión por celda espacial."""
         del method  # El heatmap actual agrega todos los métodos; el CSV conserva el método.
-        x_index = int(np.clip(float(position[0]) / max(env.width, 1) * self.heatmap_cols, 0, self.heatmap_cols - 1))
-        y_index = int(np.clip(float(position[1]) / max(env.height, 1) * self.heatmap_rows, 0, self.heatmap_rows - 1))
+        x_index = int(
+            np.clip(
+                float(position[0]) / max(env.width, 1) * self.heatmap_cols, 0, self.heatmap_cols - 1
+            )
+        )
+        y_index = int(
+            np.clip(
+                float(position[1]) / max(env.height, 1) * self.heatmap_rows,
+                0,
+                self.heatmap_rows - 1,
+            )
+        )
         self.heatmap[x_index, y_index] += float(max(cost, 0.0))
         self.heatmap_counts[x_index, y_index] += 1.0
 
@@ -818,7 +874,11 @@ class ReasoningDashboardController:
             "costo_decision": float(cost),
             "costo_total": float(getattr(self.state, "costo_total", 0.0)),
             "accion": int(action),
-            "bloque_razonamiento": str(decision_info.get("bloque_razonamiento", decision_info.get("metodo_razonamiento", ""))),
+            "bloque_razonamiento": str(
+                decision_info.get(
+                    "bloque_razonamiento", decision_info.get("metodo_razonamiento", "")
+                )
+            ),
             "posicion_x": float(env.position[0]),
             "posicion_y": float(env.position[1]),
             "distancia_a_meta": distance,
@@ -838,10 +898,14 @@ class ReasoningDashboardController:
         """Aplica el mapa editado al entorno si existe."""
         if self.custom_sand_map is not None:
             if self.custom_sand_map.shape != env.sand.shape:
-                raise ValueError(f"Mapa editado incompatible: {self.custom_sand_map.shape} vs {env.sand.shape}.")
+                raise ValueError(
+                    f"Mapa editado incompatible: {self.custom_sand_map.shape} vs {env.sand.shape}."
+                )
             env.sand = self.custom_sand_map.copy()
 
-    def _paint_sand_disk(self, env: NavigationEnv, x: float, y: float, radius: int, value: float) -> None:
+    def _paint_sand_disk(
+        self, env: NavigationEnv, x: float, y: float, radius: int, value: float
+    ) -> None:
         """Pinta un disco directamente sobre la matriz de arena."""
         x_center = int(round(float(x)))
         y_center = int(round(float(y)))
@@ -890,7 +954,9 @@ class ReasoningDashboardController:
         flat = np.asarray(values, dtype=np.float32)
         expected = int(shape[0] * shape[1])
         if flat.size != expected:
-            raise ValueError(f"Replay inválido: sand_rle tiene {flat.size} valores; se esperaban {expected}.")
+            raise ValueError(
+                f"Replay inválido: sand_rle tiene {flat.size} valores; se esperaban {expected}."
+            )
         return flat.reshape(shape)
 
     def _overlay_heatmap(self, image: np.ndarray) -> None:
@@ -909,7 +975,9 @@ class ReasoningDashboardController:
                 alpha = min(0.60, 0.12 + 0.48 * value)
                 overlay = np.array([255, 80, 20], dtype=np.float32)
                 block = image[y0:y1, x0:x1].astype(np.float32)
-                image[y0:y1, x0:x1] = np.clip(block * (1.0 - alpha) + overlay * alpha, 0, 255).astype(np.uint8)
+                image[y0:y1, x0:x1] = np.clip(
+                    block * (1.0 - alpha) + overlay * alpha, 0, 255
+                ).astype(np.uint8)
 
     def _overlay_paths(self, image: np.ndarray) -> None:
         """Dibuja trayectorias acumuladas en el frame."""
@@ -917,7 +985,9 @@ class ReasoningDashboardController:
             for index, track in enumerate(self.comparison_tracks.values()):
                 color = self._track_color(index)
                 for start, end in zip(track.path[:-1], track.path[1:]):
-                    self._draw_line_rgb(image, np.array(start), np.array(end), color=color, radius=1)
+                    self._draw_line_rgb(
+                        image, np.array(start), np.array(end), color=color, radius=1
+                    )
         else:
             positions = [
                 np.array([event["posicion_x"], event["posicion_y"]], dtype=np.float32)
@@ -927,7 +997,9 @@ class ReasoningDashboardController:
             for start, end in zip(positions[:-1], positions[1:]):
                 self._draw_line_rgb(image, start, end, color=(30, 80, 230), radius=1)
 
-    def _draw_disk_rgb(self, image: np.ndarray, position: np.ndarray, radius: int, color: Tuple[int, int, int]) -> None:
+    def _draw_disk_rgb(
+        self, image: np.ndarray, position: np.ndarray, radius: int, color: Tuple[int, int, int]
+    ) -> None:
         """Dibuja un disco en una imagen RGB."""
         height, width = image.shape[:2]
         x_center = int(round(float(position[0])))
@@ -1055,7 +1127,9 @@ def run_app() -> None:
             offset_y = self.y + (self.height - env.height * scale) / 2.0
             return env, scale, offset_x, offset_y
 
-        def _to_screen(self, x_value: float, y_value: float, scale: float, offset_x: float, offset_y: float) -> Tuple[float, float]:
+        def _to_screen(
+            self, x_value: float, y_value: float, scale: float, offset_x: float, offset_y: float
+        ) -> Tuple[float, float]:
             return offset_x + float(x_value) * scale, offset_y + float(y_value) * scale
 
         def _to_env(self, x_value: float, y_value: float) -> Optional[Tuple[float, float]]:
@@ -1091,9 +1165,14 @@ def run_app() -> None:
                 sand = env.sand
                 for x_index in range(0, env.width, step):
                     for y_index in range(0, env.height, step):
-                        window = sand[x_index : min(x_index + step, env.width), y_index : min(y_index + step, env.height)]
+                        window = sand[
+                            x_index : min(x_index + step, env.width),
+                            y_index : min(y_index + step, env.height),
+                        ]
                         if window.size and float(np.mean(window)) > 0.10:
-                            Rectangle(pos=(tx(x_index), ty(y_index)), size=(step * scale, step * scale))
+                            Rectangle(
+                                pos=(tx(x_index), ty(y_index)), size=(step * scale, step * scale)
+                            )
 
                 # Heatmap de pensamiento: rojo/naranja indica más gasto de cómputo.
                 if self.controller.show_heatmap:
@@ -1102,7 +1181,10 @@ def run_app() -> None:
                         Color(1.0, 0.20, 0.04, 0.10 + 0.45 * intensity)
                         Rectangle(
                             pos=(tx(cell["x0"]), ty(cell["y0"])),
-                            size=((cell["x1"] - cell["x0"]) * scale, (cell["y1"] - cell["y0"]) * scale),
+                            size=(
+                                (cell["x1"] - cell["x0"]) * scale,
+                                (cell["y1"] - cell["y0"]) * scale,
+                            ),
                         )
 
                 # Meta.
@@ -1120,16 +1202,35 @@ def run_app() -> None:
 
                 # Marco.
                 Color(0.10, 0.10, 0.10, 1.0)
-                Line(rectangle=(offset_x, offset_y, env.width * scale, env.height * scale), width=1.2)
+                Line(
+                    rectangle=(offset_x, offset_y, env.width * scale, env.height * scale), width=1.2
+                )
 
-        def _draw_single_agent(self, env: NavigationEnv, tx: Callable[[float], float], ty: Callable[[float], float], scale: float) -> None:
+        def _draw_single_agent(
+            self,
+            env: NavigationEnv,
+            tx: Callable[[float], float],
+            ty: Callable[[float], float],
+            scale: float,
+        ) -> None:
             """Dibuja sensores y agente en modo individual."""
             Color(0.95, 0.20, 0.20, 1.0)
             for sensor_position in env.sensor_positions:
-                Line(points=[tx(env.position[0]), ty(env.position[1]), tx(sensor_position[0]), ty(sensor_position[1])], width=1.1)
+                Line(
+                    points=[
+                        tx(env.position[0]),
+                        ty(env.position[1]),
+                        tx(sensor_position[0]),
+                        ty(sensor_position[1]),
+                    ],
+                    width=1.1,
+                )
                 sensor_radius = max(3.0, 4.0 * scale)
                 Ellipse(
-                    pos=(tx(sensor_position[0]) - sensor_radius, ty(sensor_position[1]) - sensor_radius),
+                    pos=(
+                        tx(sensor_position[0]) - sensor_radius,
+                        ty(sensor_position[1]) - sensor_radius,
+                    ),
                     size=(2 * sensor_radius, 2 * sensor_radius),
                 )
 
@@ -1140,9 +1241,14 @@ def run_app() -> None:
                 size=(2 * car_radius, 2 * car_radius),
             )
             heading = env.position + env._vector_from_angle(env.angle, 28.0)
-            Line(points=[tx(env.position[0]), ty(env.position[1]), tx(heading[0]), ty(heading[1])], width=2.0)
+            Line(
+                points=[tx(env.position[0]), ty(env.position[1]), tx(heading[0]), ty(heading[1])],
+                width=2.0,
+            )
 
-        def _draw_comparison_agents(self, tx: Callable[[float], float], ty: Callable[[float], float], scale: float) -> None:
+        def _draw_comparison_agents(
+            self, tx: Callable[[float], float], ty: Callable[[float], float], scale: float
+        ) -> None:
             """Dibuja trayectorias y agentes del modo comparación."""
             palette = [
                 (0.12, 0.25, 0.90, 1.0),
@@ -1160,18 +1266,36 @@ def run_app() -> None:
                     Line(points=points, width=1.3)
                 car_radius = max(7.0, 8.0 * scale)
                 Ellipse(
-                    pos=(tx(track.env.position[0]) - car_radius, ty(track.env.position[1]) - car_radius),
+                    pos=(
+                        tx(track.env.position[0]) - car_radius,
+                        ty(track.env.position[1]) - car_radius,
+                    ),
                     size=(2 * car_radius, 2 * car_radius),
                 )
                 heading = track.env.position + track.env._vector_from_angle(track.env.angle, 24.0)
-                Line(points=[tx(track.env.position[0]), ty(track.env.position[1]), tx(heading[0]), ty(heading[1])], width=2.0)
+                Line(
+                    points=[
+                        tx(track.env.position[0]),
+                        ty(track.env.position[1]),
+                        tx(heading[0]),
+                        ty(heading[1]),
+                    ],
+                    width=2.0,
+                )
 
         def on_touch_down(self, touch: Any) -> bool:
             """Permite dibujar obstáculos desde la interfaz."""
-            if self.controller is not None and self.controller.map_editor_enabled and self.collide_point(*touch.pos):
+            if (
+                self.controller is not None
+                and self.controller.map_editor_enabled
+                and self.collide_point(*touch.pos)
+            ):
                 point = self._to_env(touch.x, touch.y)
                 if point is not None:
-                    erase = self.controller.editor_tool == "erase" or getattr(touch, "button", "") == "right"
+                    erase = (
+                        self.controller.editor_tool == "erase"
+                        or getattr(touch, "button", "") == "right"
+                    )
                     self.controller.paint_obstacle_at(point[0], point[1], erase=erase)
                     self.refresh()
                     return True
@@ -1179,10 +1303,17 @@ def run_app() -> None:
 
         def on_touch_move(self, touch: Any) -> bool:
             """Dibuja continuamente mientras se arrastra el cursor/dedo."""
-            if self.controller is not None and self.controller.map_editor_enabled and self.collide_point(*touch.pos):
+            if (
+                self.controller is not None
+                and self.controller.map_editor_enabled
+                and self.collide_point(*touch.pos)
+            ):
                 point = self._to_env(touch.x, touch.y)
                 if point is not None:
-                    erase = self.controller.editor_tool == "erase" or getattr(touch, "button", "") == "right"
+                    erase = (
+                        self.controller.editor_tool == "erase"
+                        or getattr(touch, "button", "") == "right"
+                    )
                     self.controller.paint_obstacle_at(point[0], point[1], erase=erase)
                     self.refresh()
                     return True
@@ -1217,7 +1348,10 @@ def run_app() -> None:
                 positions: Dict[str, Tuple[float, float]] = {}
                 for index, node in enumerate(nodes[:max_nodes], start=1):
                     node_id = str(node.get("id", index))
-                    positions[node_id] = (self.x + spacing * index, y_mid + math.sin(index) * self.height * 0.15)
+                    positions[node_id] = (
+                        self.x + spacing * index,
+                        y_mid + math.sin(index) * self.height * 0.15,
+                    )
 
                 Color(0.45, 0.45, 0.45, 1.0)
                 for edge in edges[:18]:
@@ -1271,14 +1405,18 @@ def run_app() -> None:
             )
             header.bind(size=lambda instance, _value: setattr(instance, "text_size", instance.size))
             self.map_canvas = MapCanvas(controller=self.controller, size_hint=(1.0, 0.78))
-            self.graph_canvas = ThoughtGraphCanvas(controller=self.controller, size_hint=(1.0, 0.22))
+            self.graph_canvas = ThoughtGraphCanvas(
+                controller=self.controller, size_hint=(1.0, 0.22)
+            )
             left.add_widget(header)
             left.add_widget(self.map_canvas)
             left.add_widget(self.graph_canvas)
 
             right = BoxLayout(orientation="vertical", spacing=dp(6), size_hint=(0.30, 1.0))
             self.metrics_label = Label(text="", size_hint=(1.0, 0.44), halign="left", valign="top")
-            self.metrics_label.bind(size=lambda instance, _value: setattr(instance, "text_size", instance.size))
+            self.metrics_label.bind(
+                size=lambda instance, _value: setattr(instance, "text_size", instance.size)
+            )
 
             self.scenario_spinner = Spinner(
                 text=self.controller.state.escenario,
@@ -1296,7 +1434,9 @@ def run_app() -> None:
             )
             self.method_spinner.bind(text=self.on_method_selected)
 
-            controls = BoxLayout(orientation="horizontal", spacing=dp(5), size_hint=(1.0, None), height=dp(40))
+            controls = BoxLayout(
+                orientation="horizontal", spacing=dp(5), size_hint=(1.0, None), height=dp(40)
+            )
             self.play_button = Button(text="Iniciar")
             step_button = Button(text="Paso")
             reset_button = Button(text="Reiniciar")
@@ -1307,7 +1447,9 @@ def run_app() -> None:
             controls.add_widget(step_button)
             controls.add_widget(reset_button)
 
-            comparison_controls = BoxLayout(orientation="horizontal", spacing=dp(5), size_hint=(1.0, None), height=dp(40))
+            comparison_controls = BoxLayout(
+                orientation="horizontal", spacing=dp(5), size_hint=(1.0, None), height=dp(40)
+            )
             self.comparison_button = Button(text="Comparación OFF")
             self.heatmap_button = Button(text="Heatmap ON")
             self.comparison_button.bind(on_release=lambda _instance: self.toggle_comparison())
@@ -1315,7 +1457,9 @@ def run_app() -> None:
             comparison_controls.add_widget(self.comparison_button)
             comparison_controls.add_widget(self.heatmap_button)
 
-            editor_controls = BoxLayout(orientation="horizontal", spacing=dp(5), size_hint=(1.0, None), height=dp(40))
+            editor_controls = BoxLayout(
+                orientation="horizontal", spacing=dp(5), size_hint=(1.0, None), height=dp(40)
+            )
             self.editor_button = Button(text="Editor OFF")
             self.editor_tool_button = Button(text="Pintar")
             clear_map_button = Button(text="Limpiar")
@@ -1326,18 +1470,28 @@ def run_app() -> None:
             editor_controls.add_widget(self.editor_tool_button)
             editor_controls.add_widget(clear_map_button)
 
-            speed_label = Label(text="Velocidad de simulación", size_hint=(1.0, None), height=dp(22))
-            self.speed_slider = Slider(min=1, max=12, value=1, step=1, size_hint=(1.0, None), height=dp(36))
+            speed_label = Label(
+                text="Velocidad de simulación", size_hint=(1.0, None), height=dp(22)
+            )
+            self.speed_slider = Slider(
+                min=1, max=12, value=1, step=1, size_hint=(1.0, None), height=dp(36)
+            )
             self.speed_slider.bind(value=self.on_speed_changed)
 
-            replay_controls = BoxLayout(orientation="horizontal", spacing=dp(5), size_hint=(1.0, None), height=dp(40))
-            self.seed_input = TextInput(text=str(self.controller.seed), multiline=False, input_filter="int")
+            replay_controls = BoxLayout(
+                orientation="horizontal", spacing=dp(5), size_hint=(1.0, None), height=dp(40)
+            )
+            self.seed_input = TextInput(
+                text=str(self.controller.seed), multiline=False, input_filter="int"
+            )
             seed_button = Button(text="Cargar seed")
             seed_button.bind(on_release=lambda _instance: self.load_seed())
             replay_controls.add_widget(self.seed_input)
             replay_controls.add_widget(seed_button)
 
-            export_controls = BoxLayout(orientation="horizontal", spacing=dp(5), size_hint=(1.0, None), height=dp(40))
+            export_controls = BoxLayout(
+                orientation="horizontal", spacing=dp(5), size_hint=(1.0, None), height=dp(40)
+            )
             snapshot_button = Button(text="JSON")
             replay_button = Button(text="Replay")
             csv_button = Button(text="CSV")
@@ -1348,7 +1502,9 @@ def run_app() -> None:
             export_controls.add_widget(replay_button)
             export_controls.add_widget(csv_button)
 
-            media_controls = BoxLayout(orientation="horizontal", spacing=dp(5), size_hint=(1.0, None), height=dp(40))
+            media_controls = BoxLayout(
+                orientation="horizontal", spacing=dp(5), size_hint=(1.0, None), height=dp(40)
+            )
             gif_button = Button(text="Grabar GIF")
             demo_button = Button(text="Paper/demo")
             gif_button.bind(on_release=lambda _instance: self.record_gif())
@@ -1373,10 +1529,18 @@ def run_app() -> None:
         def refresh(self) -> None:
             """Actualiza métricas y lienzos."""
             self.metrics_label.text = self.controller.metrics_text()
-            self.comparison_button.text = "Comparación ON" if self.controller.comparison_enabled else "Comparación OFF"
-            self.heatmap_button.text = "Heatmap ON" if self.controller.show_heatmap else "Heatmap OFF"
-            self.editor_button.text = "Editor ON" if self.controller.map_editor_enabled else "Editor OFF"
-            self.editor_tool_button.text = "Borrar" if self.controller.editor_tool == "erase" else "Pintar"
+            self.comparison_button.text = (
+                "Comparación ON" if self.controller.comparison_enabled else "Comparación OFF"
+            )
+            self.heatmap_button.text = (
+                "Heatmap ON" if self.controller.show_heatmap else "Heatmap OFF"
+            )
+            self.editor_button.text = (
+                "Editor ON" if self.controller.map_editor_enabled else "Editor OFF"
+            )
+            self.editor_tool_button.text = (
+                "Borrar" if self.controller.editor_tool == "erase" else "Pintar"
+            )
             self.map_canvas.refresh()
             self.graph_canvas.refresh()
 
@@ -1414,7 +1578,9 @@ def run_app() -> None:
         def toggle_heatmap(self) -> None:
             """Muestra u oculta el heatmap de cómputo."""
             self.controller.show_heatmap = not self.controller.show_heatmap
-            self.controller.state.mensaje = f"Heatmap {'activado' if self.controller.show_heatmap else 'oculto'}."
+            self.controller.state.mensaje = (
+                f"Heatmap {'activado' if self.controller.show_heatmap else 'oculto'}."
+            )
             self.refresh()
 
         def toggle_editor(self) -> None:
@@ -1437,7 +1603,11 @@ def run_app() -> None:
             """Carga una semilla desde el input de replay."""
             try:
                 seed = int(self.seed_input.text or "0")
-                self.controller.set_replay_seed(seed, scenario_name=self.controller.state.escenario, method_name=self.controller.state.metodo)
+                self.controller.set_replay_seed(
+                    seed,
+                    scenario_name=self.controller.state.escenario,
+                    method_name=self.controller.state.metodo,
+                )
             except ValueError as exc:
                 self.controller.state.mensaje = f"Seed inválida: {exc}"
             self.refresh()
@@ -1456,14 +1626,18 @@ def run_app() -> None:
 
         def export_csv(self) -> None:
             """Exporta trazas CSV de comparación."""
-            path = self.controller.export_comparison_csv(Path("results/dashboard_comparison_trace.csv"))
+            path = self.controller.export_comparison_csv(
+                Path("results/dashboard_comparison_trace.csv")
+            )
             self.controller.state.mensaje = f"CSV exportado en {path}"
             self.refresh()
 
         def record_gif(self) -> None:
             """Graba un GIF corto de la simulación."""
             try:
-                path = self.controller.record_episode(Path("results/dashboard_episode.gif"), steps=90, fps=12, comparison=True)
+                path = self.controller.record_episode(
+                    Path("results/dashboard_episode.gif"), steps=90, fps=12, comparison=True
+                )
                 self.controller.state.mensaje = f"GIF exportado en {path}"
             except RuntimeError as exc:
                 self.controller.state.mensaje = str(exc)
@@ -1472,7 +1646,9 @@ def run_app() -> None:
         def generate_demo(self) -> None:
             """Genera artefactos de documentación."""
             try:
-                artifacts = self.controller.generate_paper_demo(Path("results/paper_demo"), steps=90, fps=12)
+                artifacts = self.controller.generate_paper_demo(
+                    Path("results/paper_demo"), steps=90, fps=12
+                )
                 self.controller.state.mensaje = f"Paper/demo generado: {artifacts.get('manifest')}"
             except RuntimeError as exc:
                 self.controller.state.mensaje = str(exc)

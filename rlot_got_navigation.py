@@ -30,7 +30,6 @@ from reasoning_policies import (
     rollout_score,
 )
 
-
 PolicyInfo = Dict[str, Any]
 PolicyReturn = Tuple[int, PolicyInfo]
 
@@ -118,7 +117,9 @@ class NavigationThoughtGraph:
     def add_edge(self, source: str, target: str, relation: str, weight: float = 1.0) -> None:
         """Agrega una dependencia dirigida entre pensamientos."""
         if source in self.nodes and target in self.nodes:
-            self.edges.append(ThoughtEdge(source=source, target=target, relation=relation, weight=float(weight)))
+            self.edges.append(
+                ThoughtEdge(source=source, target=target, relation=relation, weight=float(weight))
+            )
 
     def action_scores(self) -> Dict[int, float]:
         """Destila el grafo a puntajes por acción de bajo nivel."""
@@ -268,7 +269,11 @@ class ReflectiveActionPolicy:
             if depth_index == 0:
                 current_action, _ = greedy_goal_policy(simulated_env, state)
         distance = float(np.linalg.norm(simulated_env.position - simulated_env.goal))
-        score = total_reward - self.config.danger_penalty * risk - self.config.distance_penalty * distance
+        score = (
+            total_reward
+            - self.config.danger_penalty * risk
+            - self.config.distance_penalty * distance
+        )
         return float(score), float(min(risk, 1.0)), int(steps)
 
 
@@ -277,7 +282,9 @@ class GoTNavigationGraphPolicy:
 
     def __init__(self, config: Optional[GoTNavigationConfig] = None) -> None:
         self.config = config or GoTNavigationConfig()
-        self.chain_policy = ChainOfActionsPolicy(ChainOfActionsConfig(depth=self.config.chain_depth))
+        self.chain_policy = ChainOfActionsPolicy(
+            ChainOfActionsConfig(depth=self.config.chain_depth)
+        )
         self.tree_policy = TreeOfActions(
             TreeSearchConfig(
                 depth=self.config.tree_depth,
@@ -291,13 +298,17 @@ class GoTNavigationGraphPolicy:
                 waypoint_stride=self.config.waypoint_stride,
             )
         )
-        self.reflect_policy = ReflectiveActionPolicy(ReflectivePolicyConfig(lookahead_depth=self.config.reflection_depth))
+        self.reflect_policy = ReflectiveActionPolicy(
+            ReflectivePolicyConfig(lookahead_depth=self.config.reflection_depth)
+        )
         self.last_graph = NavigationThoughtGraph()
 
     def select_action(self, env: NavigationEnv, state: np.ndarray) -> PolicyReturn:
         """Construye un grafo de pensamientos y destila una acción."""
         graph = NavigationThoughtGraph()
-        graph.add_node(ThoughtNode("estado", "estado_actual", None, 0.0, self._state_details(env, state)))
+        graph.add_node(
+            ThoughtNode("estado", "estado_actual", None, 0.0, self._state_details(env, state))
+        )
 
         total_cost = 0.0
         recommendations: List[Tuple[str, int, float, Dict[str, Any]]] = []
@@ -307,27 +318,37 @@ class GoTNavigationGraphPolicy:
         total_cost += 1.0
 
         action, info = self.chain_policy.select_action(env, state)
-        recommendations.append(("cadena", action, self._score_from_info(info, "puntajes_cadena", action), info))
+        recommendations.append(
+            ("cadena", action, self._score_from_info(info, "puntajes_cadena", action), info)
+        )
         total_cost += float(info.get("costo_decision", 1.0))
 
         action, info = self.tree_policy.select_action(env, state)
-        recommendations.append(("arbol", action, self._score_from_info(info, "puntajes_raiz", action), info))
+        recommendations.append(
+            ("arbol", action, self._score_from_info(info, "puntajes_raiz", action), info)
+        )
         total_cost += float(info.get("costo_decision", 1.0))
 
         action, info = self.waypoint_policy.select_action(env, state)
-        waypoint_score = self._immediate_score(env, action) + 0.10 * float(info.get("longitud_plan", 0.0) > 0.0)
+        waypoint_score = self._immediate_score(env, action) + 0.10 * float(
+            info.get("longitud_plan", 0.0) > 0.0
+        )
         recommendations.append(("grafo_waypoints", action, waypoint_score, info))
         total_cost += float(info.get("costo_decision", 1.0))
 
         action, info = self.reflect_policy.select_action(env, state)
-        reflect_score = self._score_from_info(info, "puntajes_reflexion", action, default=float(info.get("puntaje_reflexion", 0.0)))
+        reflect_score = self._score_from_info(
+            info, "puntajes_reflexion", action, default=float(info.get("puntaje_reflexion", 0.0))
+        )
         recommendations.append(("reflexion", action, reflect_score, info))
         total_cost += float(info.get("costo_decision", 1.0))
 
         # Nodos de recomendación: cada bloque aporta un pensamiento parcial.
         for index, (kind, action, score, info) in enumerate(recommendations):
             node_id = f"{kind}_{index}"
-            adjusted_score = float(score) - self.config.cost_penalty * float(info.get("costo_decision", 1.0))
+            adjusted_score = float(score) - self.config.cost_penalty * float(
+                info.get("costo_decision", 1.0)
+            )
             graph.add_node(
                 ThoughtNode(
                     node_id=node_id,
@@ -347,15 +368,22 @@ class GoTNavigationGraphPolicy:
                     kind="evaluacion_riesgo",
                     action=int(action),
                     score=float(risk_score),
-                    details={"riesgo_estimado": float(risk_level), "pasos_simulados": float(risk_steps)},
+                    details={
+                        "riesgo_estimado": float(risk_level),
+                        "pasos_simulados": float(risk_steps),
+                    },
                 )
             )
             graph.add_edge(node_id, risk_node_id, "critica", 1.0)
             total_cost += risk_steps
 
         # Aristas de consenso: si dos bloques recomiendan lo mismo, se refuerzan mutuamente.
-        for left_index, (left_kind, left_action, _left_score, _left_info) in enumerate(recommendations):
-            for right_index, (right_kind, right_action, _right_score, _right_info) in enumerate(recommendations):
+        for left_index, (left_kind, left_action, _left_score, _left_info) in enumerate(
+            recommendations
+        ):
+            for right_index, (right_kind, right_action, _right_score, _right_info) in enumerate(
+                recommendations
+            ):
                 if left_index >= right_index or left_action != right_action:
                     continue
                 left_id = f"{left_kind}_{left_index}"
@@ -409,7 +437,9 @@ class GoTNavigationGraphPolicy:
                 compact[key] = info[key]
         return compact
 
-    def _score_from_info(self, info: Mapping[str, Any], key: str, action: int, default: float = 0.0) -> float:
+    def _score_from_info(
+        self, info: Mapping[str, Any], key: str, action: int, default: float = 0.0
+    ) -> float:
         """Extrae puntaje de un diccionario de resultados."""
         raw = info.get(key, {})
         if isinstance(raw, Mapping):
@@ -445,7 +475,9 @@ class RLoTNavigator:
             raise ValueError("Debes configurar al menos un bloque de razonamiento válido.")
         self.q_table: Dict[str, List[float]] = {}
 
-    def select_action(self, env: NavigationEnv, state: np.ndarray, explore: bool = False) -> PolicyReturn:
+    def select_action(
+        self, env: NavigationEnv, state: np.ndarray, explore: bool = False
+    ) -> PolicyReturn:
         """Selecciona bloque de razonamiento y luego acción de navegación."""
         state_key = self.discretize_state(env, state)
         block_index = self.select_block_index(state_key, explore=explore)
@@ -481,22 +513,30 @@ class RLoTNavigator:
         right = float(state[3])
         max_sensor = max(front, left, right)
         imbalance = abs(left - right)
-        distance = float(np.linalg.norm(env.position - env.goal)) / max(float(env.width + env.height), 1.0)
+        distance = float(np.linalg.norm(env.position - env.goal)) / max(
+            float(env.width + env.height), 1.0
+        )
         orientation_bin = min(int(orientation * 4.0), 3)
         sensor_bin = min(int(max_sensor * 4.0), 3)
         imbalance_bin = min(int(imbalance * 4.0), 3)
         distance_bin = min(int(distance * 5.0), 4)
         return f"o{orientation_bin}_s{sensor_bin}_i{imbalance_bin}_d{distance_bin}"
 
-    def update(self, state_key: str, block_index: int, reward: float, next_state_key: Optional[str] = None) -> None:
+    def update(
+        self, state_key: str, block_index: int, reward: float, next_state_key: Optional[str] = None
+    ) -> None:
         """Actualiza la Q-table con una regla Q-learning compacta."""
         values = self._values(state_key)
         current_value = values[int(block_index)]
         if next_state_key is None:
             target = float(reward)
         else:
-            target = float(reward) + float(self.config.gamma) * float(np.max(self._values(next_state_key)))
-        values[int(block_index)] = current_value + float(self.config.alpha) * (target - current_value)
+            target = float(reward) + float(self.config.gamma) * float(
+                np.max(self._values(next_state_key))
+            )
+        values[int(block_index)] = current_value + float(self.config.alpha) * (
+            target - current_value
+        )
         self.q_table[state_key] = values
 
     def update_from_info(
@@ -510,7 +550,9 @@ class RLoTNavigator:
         if not state_key:
             return
         block_index = int(float(info.get("indice_bloque_rlot", 0.0)))
-        adjusted_reward = float(reward) - float(self.config.cost_penalty) * float(info.get("costo_decision", 1.0))
+        adjusted_reward = float(reward) - float(self.config.cost_penalty) * float(
+            info.get("costo_decision", 1.0)
+        )
         self.update(state_key, block_index, adjusted_reward, next_state_key=next_state_key)
 
     def save(self, path: str | Path) -> None:
@@ -527,7 +569,9 @@ class RLoTNavigator:
                 "cost_penalty": self.config.cost_penalty,
                 "seed": self.config.seed,
             },
-            "q_table": {key: [float(value) for value in values] for key, values in self.q_table.items()},
+            "q_table": {
+                key: [float(value) for value in values] for key, values in self.q_table.items()
+            },
         }
         target.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
 
@@ -538,7 +582,9 @@ class RLoTNavigator:
         if loaded_blocks != self.block_names:
             raise ValueError(f"Bloques incompatibles: {loaded_blocks} != {self.block_names}.")
         q_table = payload.get("q_table", {})
-        self.q_table = {str(key): [float(value) for value in values] for key, values in q_table.items()}
+        self.q_table = {
+            str(key): [float(value) for value in values] for key, values in q_table.items()
+        }
 
     def _values(self, state_key: str) -> List[float]:
         """Obtiene valores Q para un estado discreto, inicializando sesgos suaves."""

@@ -41,7 +41,9 @@ class AStarPlanner:
         self.last_expanded_nodes = 0
         self.last_path_length = 0
 
-    def select_action(self, env: NavigationEnv, state: Optional[np.ndarray] = None) -> Tuple[int, Dict[str, float]]:
+    def select_action(
+        self, env: NavigationEnv, state: Optional[np.ndarray] = None
+    ) -> Tuple[int, Dict[str, float]]:
         """Devuelve la acción de bajo nivel sugerida por A*."""
         if self.config.replan_each_step or not self.cached_path:
             self.cached_path = self.plan(env)
@@ -63,7 +65,9 @@ class AStarPlanner:
 
         target_cell = path[0] if path[0] != current_cell else path[min(1, len(path) - 1)]
         target_position = self._cell_to_position(env, target_cell)
-        desired_angle = math.degrees(math.atan2(target_position[1] - env.position[1], target_position[0] - env.position[0]))
+        desired_angle = math.degrees(
+            math.atan2(target_position[1] - env.position[1], target_position[0] - env.position[0])
+        )
         angle_error = self._normalize_angle(desired_angle - env.angle)
 
         if abs(angle_error) <= self.config.turn_tolerance_degrees:
@@ -203,7 +207,9 @@ class AStarPlanner:
         y = min(cell[1] * size + size / 2.0, env.height - env.config.margin)
         return np.array([x, y], dtype=np.float32)
 
-    def _reconstruct_path(self, came_from: Dict[GridCell, Optional[GridCell]], goal: GridCell) -> List[GridCell]:
+    def _reconstruct_path(
+        self, came_from: Dict[GridCell, Optional[GridCell]], goal: GridCell
+    ) -> List[GridCell]:
         """Reconstruye la ruta desde el diccionario de padres."""
         current: Optional[GridCell] = goal
         path: List[GridCell] = []

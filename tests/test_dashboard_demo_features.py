@@ -54,7 +54,9 @@ def test_generate_paper_demo_includes_overthinking_summary(tmp_path: Path) -> No
     """El modo paper/demo debe producir análisis de sobrepensamiento junto al GIF y las figuras."""
     controller = ReasoningDashboardController(seed=55, max_steps=10)
     controller.set_scenario("facil")
-    artifacts = controller.generate_paper_demo(output_dir=tmp_path / "demo", steps=3, seed=55, fps=4)
+    artifacts = controller.generate_paper_demo(
+        output_dir=tmp_path / "demo", steps=3, seed=55, fps=4
+    )
     assert artifacts["gif"].exists()
     assert artifacts["overthinking_csv"].exists()
     assert artifacts["overthinking_json"].exists()

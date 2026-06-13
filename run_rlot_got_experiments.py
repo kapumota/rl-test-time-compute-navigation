@@ -20,8 +20,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--eval-episodes", type=int, default=3, help="Episodios por método.")
     parser.add_argument("--max-steps", type=int, default=200, help="Máximo de pasos por episodio.")
     parser.add_argument("--seed", type=int, default=123, help="Semilla base.")
-    parser.add_argument("--results", type=Path, default=Path("results/rlot_got_eval.csv"), help="CSV por episodio.")
-    parser.add_argument("--summary", type=Path, default=Path("results/rlot_got_summary.csv"), help="CSV agregado.")
+    parser.add_argument(
+        "--results", type=Path, default=Path("results/rlot_got_eval.csv"), help="CSV por episodio."
+    )
+    parser.add_argument(
+        "--summary", type=Path, default=Path("results/rlot_got_summary.csv"), help="CSV agregado."
+    )
     return parser.parse_args()
 
 

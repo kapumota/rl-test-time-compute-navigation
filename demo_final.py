@@ -46,10 +46,19 @@ def parse_args() -> argparse.Namespace:
         help="Perfil de ejecución. 'quick' es para validar; 'presentation' es para mostrar; 'full' produce más pasos.",
     )
     parser.add_argument("--scenario", default=None, help="Escenario a usar. Sobrescribe el preset.")
-    parser.add_argument("--seed", type=int, default=None, help="Semilla determinista. Sobrescribe el preset.")
-    parser.add_argument("--steps", type=int, default=None, help="Número de pasos del episodio. Sobrescribe el preset.")
+    parser.add_argument(
+        "--seed", type=int, default=None, help="Semilla determinista. Sobrescribe el preset."
+    )
+    parser.add_argument(
+        "--steps",
+        type=int,
+        default=None,
+        help="Número de pasos del episodio. Sobrescribe el preset.",
+    )
     parser.add_argument("--fps", type=int, default=None, help="FPS del GIF. Sobrescribe el preset.")
-    parser.add_argument("--output", type=Path, default=None, help="Directorio de salida. Sobrescribe el preset.")
+    parser.add_argument(
+        "--output", type=Path, default=None, help="Directorio de salida. Sobrescribe el preset."
+    )
     parser.add_argument(
         "--method",
         default="RL-of-Thoughts Navigator",

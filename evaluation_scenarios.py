@@ -3,7 +3,7 @@ Proyecto: ¿Cuándo debe pensar un agente RL?
 Fase 4: escenarios de evaluación para generalización y robustez.
 
 Este archivo define mapas fáciles, mapas densos, metas cambiantes, mapas no vistos
-sensores ruidosos. 
+sensores ruidosos.
 """
 
 from __future__ import annotations
@@ -145,7 +145,9 @@ class NoisyNavigationEnv(NavigationEnv):
 
         noisy_sensors = observation[1:4].copy()
         if self.sensor_noise_std > 0.0:
-            noisy_sensors += self.noise_rng.normal(0.0, self.sensor_noise_std, size=3).astype(np.float32)
+            noisy_sensors += self.noise_rng.normal(0.0, self.sensor_noise_std, size=3).astype(
+                np.float32
+            )
         if self.sensor_dropout_prob > 0.0:
             dropout_mask = self.noise_rng.random(3) < self.sensor_dropout_prob
             noisy_sensors[dropout_mask] = 1.0

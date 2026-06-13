@@ -79,7 +79,9 @@ def train_controller(
             shaped_reward = float(reward) - 0.001 * decision_cost
             if bool(step_info.get("meta_alcanzada", False)):
                 shaped_reward += 2.0
-            if bool(step_info.get("sobre_arena", False)) or bool(step_info.get("colision_borde", False)):
+            if bool(step_info.get("sobre_arena", False)) or bool(
+                step_info.get("colision_borde", False)
+            ):
                 shaped_reward -= 0.25
 
             controller.update(trace, shaped_reward)
@@ -117,12 +119,24 @@ def train_controller(
 
 def parse_args() -> argparse.Namespace:
     """Lee argumentos de línea de comandos."""
-    parser = argparse.ArgumentParser(description="Entrena el controlador aprendido de razonamiento.")
+    parser = argparse.ArgumentParser(
+        description="Entrena el controlador aprendido de razonamiento."
+    )
     parser.add_argument("--episodes", type=int, default=20, help="Episodios de entrenamiento.")
     parser.add_argument("--max-steps", type=int, default=200, help="Pasos máximos por episodio.")
     parser.add_argument("--seed", type=int, default=123, help="Semilla base.")
-    parser.add_argument("--output", type=Path, default=Path("models/reasoning_controller.json"), help="Archivo JSON de pesos.")
-    parser.add_argument("--metrics", type=Path, default=Path("results/reasoning_controller_train.csv"), help="CSV de entrenamiento.")
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=Path("models/reasoning_controller.json"),
+        help="Archivo JSON de pesos.",
+    )
+    parser.add_argument(
+        "--metrics",
+        type=Path,
+        default=Path("results/reasoning_controller_train.csv"),
+        help="CSV de entrenamiento.",
+    )
     return parser.parse_args()
 
 
