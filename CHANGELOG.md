@@ -65,4 +65,9 @@ Cambios iniciales de la Fase A:
 - Se integra `measure_decision` en la comparación lado a lado.
 - Se agrega `costo_decision_pasos` y `tiempo_decision_ms` a eventos exportables.
 - Se mantienen `costo_decision` y `costo_total` como compatibilidad histórica.
-- Se agregan pruebas para validar métricas en estado visible, eventos y resumen de comparación.
+- Se agregan pruebas para validar métricas en estado visible, eventos y resumen de comparación.\n\n#### A2.5 - Cierre de compatibilidad de métricas de decisión
+
+- Se agrega una prueba de integración por fuente para validar la presencia de métricas nuevas.
+- Se verifica que reasoning, suite de evaluación, baselines y dashboard usen `measure_decision`.
+- Se verifica que los reportes mantengan campos históricos de costo.
+- Se evita importar módulos con dependencias opcionales durante la prueba de compatibilidad.
