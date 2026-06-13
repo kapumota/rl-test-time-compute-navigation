@@ -609,10 +609,13 @@ class RLoTNavigator:
         }
 
 
-def build_rlot_and_got_policies(model_path: Optional[Path] = None) -> Dict[str, Any]:
+def build_rlot_and_got_policies(
+    model_path: Optional[Path] = None,
+    seed: int = 123,
+) -> Dict[str, Any]:
     """Construye políticas nuevas de Fase 5 para scripts de evaluación."""
     got_policy = GoTNavigationGraphPolicy(GoTNavigationConfig())
-    rlot = RLoTNavigator(RLoTNavigatorConfig(epsilon=0.0, seed=123))
+    rlot = RLoTNavigator(RLoTNavigatorConfig(epsilon=0.0, seed=seed))
     if model_path is not None and model_path.exists():
         rlot.load(model_path)
     return {

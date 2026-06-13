@@ -14,3 +14,10 @@ Cambios iniciales de la Fase A:
 - Se agrega `reproducibility.py` con `SeedPlan`, `set_global_seed`, `build_numpy_rng` y `build_python_rng`.
 - Se reemplaza el muestreo de acciones aleatorias por un generador controlado por la seed del entorno.
 - Se agregan pruebas iniciales para validar semillas derivadas y muestreo reproducible.
+
+#### A1.1 - Propagación de seed en evaluación y RLoT
+
+- Se propaga la semilla base hacia `build_policies`.
+- Se propaga la semilla base hacia el controlador aprendido y RLoT.
+- Se reemplazan offsets manuales de evaluación por `SeedPlan`.
+- Se agregan pruebas de traza lógica reproducible para política aleatoria y RLoT.
