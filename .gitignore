@@ -27,3 +27,11 @@ Thumbs.db
 
 # Notebooks temporales
 .ipynb_checkpoints/
+
+# Artefactos locales de desarrollo
+.agente/
+.coverage
+coverage.xml
+htmlcov/
+build/
+dist/

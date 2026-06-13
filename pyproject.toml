@@ -1,3 +1,60 @@
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+include = "\\.pyi?$"
+extend-exclude = """
+(
+  ^/\\.agente/
+  | ^/\\.venv/
+  | ^/venv/
+  | ^/build/
+  | ^/dist/
+  | ^/\\.git/
+  | ^/htmlcov/
+)
+"""
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+exclude = [
+  ".agente",
+  ".venv",
+  "venv",
+  "build",
+  "dist",
+  ".git",
+  "htmlcov",
+]
+
+[tool.ruff.lint]
+select = ["F"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = [
+  "analyze_overthinking.py",
+  "astar_planner.py",
+  "baseline_env.py",
+  "evaluation_scenarios.py",
+  "map.py",
+  "reasoning_policies.py",
+  "research_catalog.py",
+  "rlot_got_navigation.py",
+  "run_evaluation_suite.py",
+  "run_reasoning_experiments.py",
+  "tests",
+]
+exclude = [
+  "^\\.agente/",
+  "^\\.venv/",
+  "^venv/",
+  "^build/",
+  "^dist/",
+]
+ignore_missing_imports = true
+
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
@@ -31,6 +88,10 @@ full = [
 ]
 dev = [
   "pytest>=8.0",
+  "pytest-cov>=5.0",
+  "mypy>=1.10",
+  "ruff>=0.5",
+  "black>=24.0",
   "imageio>=2.34",
   "imageio-ffmpeg>=0.4.9"
 ]
@@ -72,6 +133,3 @@ py-modules = [
 pythonpath = ["."]
 testpaths = ["tests"]
 addopts = "-q"
-
-[tool.ruff]
-line-length = 120
