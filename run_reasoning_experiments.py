@@ -26,6 +26,7 @@ import numpy as np
 
 from astar_planner import AStarConfig, AStarPlanner
 from baseline_env import TITULO_PROYECTO, build_default_env
+from decision_metrics import build_decision_metrics, measure_decision
 from reasoning_policies import (
     AdaptiveBudgetConfig,
     AdaptiveRolloutBudget,
@@ -66,11 +67,24 @@ def evaluate_policy(
         border_collisions = 0
         reached_goal = False
         decision_cost_total = 0.0
+        decision_time_ms_total = 0.0
         reasoning_counts: Dict[str, int] = {}
 
         for _ in range(max_steps):
-            action, decision_info = normalize_policy_result(policy(env, state))
-            decision_cost_total += float(decision_info.get("costo_decision", 1.0))
+            measurement = measure_decision(
+                lambda: normalize_policy_result(policy(env, state)),
+                simulated_cost_steps=1.0,
+            )
+            action, decision_info = measurement.value
+            decision_metrics = build_decision_metrics(
+                simulated_cost_steps=decision_info.get(
+                    "costo_decision",
+                    measurement.simulated_cost_steps,
+                ),
+                real_time_ms=measurement.real_time_ms,
+            )
+            decision_cost_total += float(decision_metrics["costo_decision_pasos"])
+            decision_time_ms_total += float(decision_metrics["tiempo_decision_ms"])
             method = str(decision_info.get("metodo_razonamiento", name))
             reasoning_counts[method] = reasoning_counts.get(method, 0) + 1
 
@@ -94,6 +108,10 @@ def evaluate_policy(
                 "meta_alcanzada": float(reached_goal),
                 "pasos_en_arena": float(sand_steps),
                 "colisiones_borde": float(border_collisions),
+                "costo_decision_pasos_total": float(decision_cost_total),
+                "costo_decision_pasos_promedio": float(decision_cost_total / steps),
+                "tiempo_decision_ms_total": float(decision_time_ms_total),
+                "tiempo_decision_ms_promedio": float(decision_time_ms_total / steps),
                 "costo_decision_total": float(decision_cost_total),
                 "costo_decision_promedio": float(decision_cost_total / steps),
                 "conteo_razonamiento": str(reasoning_counts),
@@ -112,6 +130,10 @@ def summarize(rows: List[Dict[str, float | str]]) -> List[Dict[str, float | str]
         "meta_alcanzada",
         "pasos_en_arena",
         "colisiones_borde",
+        "costo_decision_pasos_total",
+        "costo_decision_pasos_promedio",
+        "tiempo_decision_ms_total",
+        "tiempo_decision_ms_promedio",
         "costo_decision_total",
         "costo_decision_promedio",
     ]

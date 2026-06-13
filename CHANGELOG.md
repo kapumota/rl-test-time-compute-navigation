@@ -34,3 +34,11 @@ Cambios iniciales de la Fase A:
 - Se introduce `tiempo_decision_ms` como métrica explícita de tiempo real.
 - Se mantiene `costo_decision` como campo compatible con reportes previos.
 - Se agregan pruebas unitarias para conversión de tiempo, normalización de costo y compatibilidad de métricas.
+
+#### A2.1 - Métricas de decisión en reasoning
+
+- Se integra `measure_decision` en la evaluación de métodos de reasoning.
+- Se agrega `costo_decision_pasos_total` y `costo_decision_pasos_promedio`.
+- Se agrega `tiempo_decision_ms_total` y `tiempo_decision_ms_promedio`.
+- Se mantiene `costo_decision_total` y `costo_decision_promedio` como compatibilidad histórica.
+- Se ajustan pruebas de determinismo para no comparar tiempo real entre corridas.
