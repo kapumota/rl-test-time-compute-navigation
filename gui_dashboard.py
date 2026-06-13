@@ -27,6 +27,7 @@ from evaluation_scenarios import apply_dynamic_goal_if_needed, build_scenario_en
 from map import NavigationEnv
 from reasoning_policies import greedy_goal_policy, normalize_policy_result
 from run_reasoning_experiments import build_policies
+from reproducibility import SeedPlan
 from analyze_overthinking import summarize_overthinking, write_summary_csv, write_summary_json
 
 PolicyCallable = Callable[[NavigationEnv, np.ndarray], int | Tuple[int, Dict[str, Any]]]
@@ -117,6 +118,7 @@ class ReasoningDashboardController:
 
     def __init__(self, seed: int = 123, max_steps: int = 500) -> None:
         self.seed = int(seed)
+        self.seed_plan = SeedPlan(self.seed)
         self.max_steps = int(max_steps)
         self.episode = 1
         self.scenarios = list_scenarios()
@@ -258,6 +260,7 @@ class ReasoningDashboardController:
                 raise ValueError(f"Método no reconocido: {method_name}")
             self.state.metodo = method_name
         self.seed = int(seed)
+        self.seed_plan = SeedPlan(self.seed)
         self.episode = int(episode)
         self.reset()
         self.state.mensaje = (
@@ -653,7 +656,7 @@ class ReasoningDashboardController:
 
     def _build_dashboard_policies(self) -> Dict[str, PolicyCallable]:
         """Construye políticas sin mezclar código visual con lógica de razonamiento."""
-        policies = build_policies()
+        policies = build_policies(seed=self.seed)
         policies["Acción directa geométrica"] = greedy_goal_policy
         return dict(sorted(policies.items(), key=lambda item: item[0]))
 
@@ -661,14 +664,14 @@ class ReasoningDashboardController:
         """Construye el escenario con las mismas semillas que el dashboard original."""
         return build_scenario_env(
             self.state.escenario,
-            seed=self.seed + 10_000 + int(episode),
+            seed=self.seed_plan.env_seed(episode),
             max_steps=self.max_steps,
             episode=int(episode),
         )
 
     def _reset_seed(self, episode: int) -> int:
         """Semilla usada para resetear posición/sensores."""
-        return int(self.seed + 20_000 + int(episode))
+        return self.seed_plan.reset_seed(episode)
 
     def _reset_visible_state(self) -> None:
         """Reinicia métricas visibles del panel."""

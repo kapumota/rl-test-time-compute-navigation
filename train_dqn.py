@@ -12,6 +12,7 @@ from typing import Dict, List, Optional
 
 from deep_q_learning import DQNAgent
 from map import NavigationConfig, NavigationEnv
+from reproducibility import SeedPlan, set_global_seed
 
 
 def build_default_env(seed: Optional[int] = 123, max_steps: int = 400) -> NavigationEnv:
@@ -34,7 +35,10 @@ def train(
     max_steps: int = 400,
 ) -> List[Dict[str, float]]:
     """Entrena el agente y devuelve métricas por episodio."""
-    env = build_default_env(seed=seed, max_steps=max_steps)
+    base_seed = int(seed if seed is not None else 123)
+    set_global_seed(base_seed)
+    seed_plan = SeedPlan(base_seed)
+    env = build_default_env(seed=seed_plan.env_seed(0), max_steps=max_steps)
     agent = DQNAgent(
         input_size=4,
         nb_action=3,
@@ -51,7 +55,7 @@ def train(
     epsilon_decay = max(episodes * 0.65, 1.0)
 
     for episode in range(1, episodes + 1):
-        state = env.reset(seed=None)
+        state = env.reset(seed=seed_plan.reset_seed(episode))
         episode_reward = 0.0
         reached_goal = False
         last_loss = None

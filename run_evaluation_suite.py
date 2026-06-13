@@ -17,7 +17,6 @@ from __future__ import annotations
 
 import argparse
 import csv
-import random
 from pathlib import Path
 from typing import Any, Callable, Dict, Iterable, List, Tuple
 
@@ -27,14 +26,9 @@ from baseline_env import TITULO_PROYECTO
 from evaluation_scenarios import apply_dynamic_goal_if_needed, build_scenario_env, list_scenarios
 from reasoning_policies import normalize_policy_result
 from run_reasoning_experiments import build_policies
+from reproducibility import SeedPlan, set_global_seed
 
 PolicyCallable = Callable[[Any, np.ndarray], int | Tuple[int, Dict[str, Any]]]
-
-
-def set_global_seed(seed: int) -> None:
-    """Fija semillas de Python y NumPy para evaluaciones reproducibles."""
-    random.seed(seed)
-    np.random.seed(seed)
 
 
 def evaluate_policy_on_scenario(
@@ -47,16 +41,20 @@ def evaluate_policy_on_scenario(
 ) -> List[Dict[str, float | str]]:
     """Evalúa una política sobre un escenario específico."""
     rows: List[Dict[str, float | str]] = []
+    seed_plan = SeedPlan(seed)
 
     for episode in range(1, eval_episodes + 1):
         instance = build_scenario_env(
             scenario_name=scenario_name,
-            seed=seed + 100_000,
+            seed=seed_plan.env_seed(episode, offset=100_000),
             max_steps=max_steps,
             episode=episode,
         )
         env = instance.env
-        state = env.reset(seed=seed + 200_000 + episode, options=instance.reset_options)
+        state = env.reset(
+            seed=seed_plan.reset_seed(episode, offset=200_000),
+            options=instance.reset_options,
+        )
 
         total_reward = 0.0
         sand_steps = 0
@@ -249,7 +247,7 @@ def main() -> None:
     if args.scenarios:
         scenario_names = validate_selection(args.scenarios, scenario_names, "Escenarios")
 
-    policies = build_policies()
+    policies = build_policies(seed=args.seed)
     if args.methods:
         requested_methods = validate_selection(args.methods, policies.keys(), "Métodos")
         policies = {name: policies[name] for name in requested_methods}

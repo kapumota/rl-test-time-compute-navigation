@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import argparse
 import csv
-import random
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Tuple
 
@@ -43,14 +42,9 @@ from reasoning_policies import (
     normalize_policy_result,
 )
 from rlot_got_navigation import build_rlot_and_got_policies
+from reproducibility import SeedPlan, set_global_seed
 
 PolicyCallable = Callable[[Any, np.ndarray], int | Tuple[int, Dict[str, Any]]]
-
-
-def set_global_seed(seed: int) -> None:
-    """Fija semillas de Python y NumPy para comparaciones reproducibles."""
-    random.seed(seed)
-    np.random.seed(seed)
 
 
 def evaluate_policy(
@@ -62,10 +56,11 @@ def evaluate_policy(
 ) -> List[Dict[str, float | str]]:
     """Evalúa una política y devuelve métricas por episodio."""
     rows: List[Dict[str, float | str]] = []
+    seed_plan = SeedPlan(seed)
 
     for episode in range(1, eval_episodes + 1):
-        env = build_default_env(seed=seed + 10_000 + episode, max_steps=max_steps)
-        state = env.reset(seed=seed + 20_000 + episode)
+        env = build_default_env(seed=seed_plan.env_seed(episode), max_steps=max_steps)
+        state = env.reset(seed=seed_plan.reset_seed(episode))
         total_reward = 0.0
         sand_steps = 0
         border_collisions = 0
@@ -164,8 +159,12 @@ def print_summary(summary_rows: List[Dict[str, float | str]]) -> None:
     print("-" * 108)
 
 
-def build_policies(controller_path: Path | None = None) -> Dict[str, PolicyCallable]:
+def build_policies(
+    controller_path: Path | None = None,
+    seed: int = 123,
+) -> Dict[str, PolicyCallable]:
     """Construye los métodos comparables de Fase 3."""
+    seed_plan = SeedPlan(seed)
     astar = AStarPlanner(AStarConfig(cell_size=20, sand_threshold=0.15))
     best_of_n = BestOfNActions(RolloutConfig(depth=4, samples_per_action=3))
     tree = TreeOfActions(TreeSearchConfig(depth=3, beam_width=3, max_expansions=120))
@@ -175,7 +174,11 @@ def build_policies(controller_path: Path | None = None) -> Dict[str, PolicyCalla
     strategies = build_reasoning_strategies()
     controller = LearnedReasoningController(
         strategies=strategies,
-        config=ReasoningControllerConfig(epsilon=0.0, learning_rate=0.05, seed=123),
+        config=ReasoningControllerConfig(
+            epsilon=0.0,
+            learning_rate=0.05,
+            seed=seed_plan.controller_seed(),
+        ),
     )
     if controller_path is not None and controller_path.exists():
         controller.load(controller_path)
@@ -193,7 +196,9 @@ def build_policies(controller_path: Path | None = None) -> Dict[str, PolicyCalla
     # Fase 5: métodos más cercanos a RLoT y GoT.
     rlot_model_path = Path("models/rlot_navigator.json")
     policies.update(
-        build_rlot_and_got_policies(rlot_model_path if rlot_model_path.exists() else None)
+        build_rlot_and_got_policies(
+            rlot_model_path if rlot_model_path.exists() else None, seed=seed_plan.policy_seed()
+        )
     )
     return policies
 
@@ -236,7 +241,7 @@ def main() -> None:
     print(TITULO_PROYECTO)
     print("Fase 3 + Fase 5: razonamiento en inferencia y RL-of-Thoughts")
 
-    policies = build_policies(args.controller)
+    policies = build_policies(args.controller, seed=args.seed)
     if args.methods:
         requested = set(args.methods)
         policies = {name: policy for name, policy in policies.items() if name in requested}

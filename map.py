@@ -15,6 +15,8 @@ import math
 
 import numpy as np
 
+from reproducibility import build_numpy_rng
+
 try:
     import gymnasium as gym
     from gymnasium import spaces
@@ -74,7 +76,7 @@ class NavigationEnv(gym.Env if gym is not None else object):
     ) -> None:
         self.config = config or NavigationConfig()
         self.render_mode = render_mode
-        self.rng = np.random.default_rng(self.config.seed)
+        self.rng = build_numpy_rng(self.config.seed)
 
         self.width = int(self.config.width)
         self.height = int(self.config.height)
@@ -111,7 +113,7 @@ class NavigationEnv(gym.Env if gym is not None else object):
     ) -> Array:
         """Reinicia el episodio y devuelve el estado inicial."""
         if seed is not None:
-            self.rng = np.random.default_rng(seed)
+            self.rng = build_numpy_rng(seed)
 
         options = options or {}
         start_position = options.get("start_position")
@@ -236,10 +238,9 @@ class NavigationEnv(gym.Env if gym is not None else object):
         raise ValueError(f"Modo de render inválido: {mode}.")
 
     def sample_action(self) -> int:
-        """Devuelve una acción aleatoria válida."""
-        if self.action_space is not None:
-            return int(self.action_space.sample())
-        return int(self.rng.integers(0, len(self.config.action_to_rotation)))
+        """Devuelve una acción aleatoria válida usando el generador del entorno."""
+        action_count = len(self.config.action_to_rotation)
+        return int(self.rng.integers(0, action_count))
 
     def clear_sand(self) -> None:
         """Elimina todos los obstáculos de arena."""
