@@ -161,5 +161,7 @@ def markdown_table(references: Iterable[ResearchReference] = RESEARCH_CATALOG) -
     ]
     for reference in references:
         title = f"[{reference.title}]({reference.url})"
-        rows.append(f"| {reference.priority} | {reference.status} | {title} | {reference.project_mapping} |")
+        rows.append(
+            f"| {reference.priority} | {reference.status} | {title} | {reference.project_mapping} |"
+        )
     return "\n".join(rows)

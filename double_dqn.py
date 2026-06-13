@@ -53,8 +53,12 @@ class DoubleDQNAgent:
         self.config = config or DoubleDQNConfig()
         self.device = torch.device(device or ("cuda" if torch.cuda.is_available() else "cpu"))
 
-        self.online_model = Network(self.input_size, self.nb_action, self.config.hidden_size).to(self.device)
-        self.target_model = Network(self.input_size, self.nb_action, self.config.hidden_size).to(self.device)
+        self.online_model = Network(self.input_size, self.nb_action, self.config.hidden_size).to(
+            self.device
+        )
+        self.target_model = Network(self.input_size, self.nb_action, self.config.hidden_size).to(
+            self.device
+        )
         self.target_model.load_state_dict(self.online_model.state_dict())
         self.target_model.eval()
 
@@ -109,11 +113,21 @@ class DoubleDQNAgent:
 
     def learn(self, batch: List[Transition]) -> float:
         """Ejecuta un paso Double DQN sobre un lote de transiciones."""
-        states = torch.as_tensor(np.stack([item.state for item in batch]), dtype=torch.float32, device=self.device)
-        actions = torch.as_tensor([item.action for item in batch], dtype=torch.long, device=self.device).unsqueeze(1)
-        rewards = torch.as_tensor([item.reward for item in batch], dtype=torch.float32, device=self.device)
-        next_states = torch.as_tensor(np.stack([item.next_state for item in batch]), dtype=torch.float32, device=self.device)
-        dones = torch.as_tensor([item.done for item in batch], dtype=torch.float32, device=self.device)
+        states = torch.as_tensor(
+            np.stack([item.state for item in batch]), dtype=torch.float32, device=self.device
+        )
+        actions = torch.as_tensor(
+            [item.action for item in batch], dtype=torch.long, device=self.device
+        ).unsqueeze(1)
+        rewards = torch.as_tensor(
+            [item.reward for item in batch], dtype=torch.float32, device=self.device
+        )
+        next_states = torch.as_tensor(
+            np.stack([item.next_state for item in batch]), dtype=torch.float32, device=self.device
+        )
+        dones = torch.as_tensor(
+            [item.done for item in batch], dtype=torch.float32, device=self.device
+        )
 
         q_values = self.online_model(states).gather(1, actions).squeeze(1)
         with torch.no_grad():
@@ -156,7 +170,9 @@ class DoubleDQNAgent:
 
         checkpoint = torch.load(path, map_location=self.device, weights_only=True)
         self.online_model.load_state_dict(checkpoint["online_model_state_dict"])
-        self.target_model.load_state_dict(checkpoint.get("target_model_state_dict", checkpoint["online_model_state_dict"]))
+        self.target_model.load_state_dict(
+            checkpoint.get("target_model_state_dict", checkpoint["online_model_state_dict"])
+        )
         if load_optimizer and "optimizer_state_dict" in checkpoint:
             self.optimizer.load_state_dict(checkpoint["optimizer_state_dict"])
         self.loss_history = list(checkpoint.get("loss_history", []))
@@ -168,5 +184,7 @@ class DoubleDQNAgent:
         """Convierte un estado en tensor de lote."""
         array = np.asarray(state, dtype=np.float32)
         if array.shape != (self.input_size,):
-            raise ValueError(f"El estado debe tener forma ({self.input_size},), pero llegó {array.shape}.")
+            raise ValueError(
+                f"El estado debe tener forma ({self.input_size},), pero llegó {array.shape}."
+            )
         return torch.as_tensor(array, dtype=torch.float32, device=self.device).unsqueeze(0)

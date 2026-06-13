@@ -30,10 +30,7 @@ def plot_metric(rows: List[Dict[str, str]], metric: str, ylabel: str, output: Pa
 
     scenarios = sorted({row["escenario_visible"] for row in rows})
     methods = sorted({row["metodo"] for row in rows})
-    values = {
-        (row["escenario_visible"], row["metodo"]): float(row[metric])
-        for row in rows
-    }
+    values = {(row["escenario_visible"], row["metodo"]): float(row[metric]) for row in rows}
 
     x = np.arange(len(scenarios))
     width = 0.8 / max(len(methods), 1)
@@ -58,8 +55,12 @@ def plot_metric(rows: List[Dict[str, str]], metric: str, ylabel: str, output: Pa
 def parse_args() -> argparse.Namespace:
     """Lee argumentos de línea de comandos."""
     parser = argparse.ArgumentParser(description="Grafica resultados agregados de Fase 4.")
-    parser.add_argument("--summary", type=Path, default=Path("results/evaluation_summary.csv"), help="CSV agregado.")
-    parser.add_argument("--output-dir", type=Path, default=Path("results/figures"), help="Directorio de salida.")
+    parser.add_argument(
+        "--summary", type=Path, default=Path("results/evaluation_summary.csv"), help="CSV agregado."
+    )
+    parser.add_argument(
+        "--output-dir", type=Path, default=Path("results/figures"), help="Directorio de salida."
+    )
     return parser.parse_args()
 
 
@@ -71,7 +72,11 @@ def main() -> None:
         ("meta_alcanzada_media", "Tasa de éxito", "fase4_exito.png"),
         ("recompensa_media", "Recompensa promedio", "fase4_recompensa.png"),
         ("distancia_final_media", "Distancia final promedio", "fase4_distancia_final.png"),
-        ("costo_decision_promedio_media", "Costo promedio por decisión", "fase4_costo_decision.png"),
+        (
+            "costo_decision_promedio_media",
+            "Costo promedio por decisión",
+            "fase4_costo_decision.png",
+        ),
     ]
     for metric, label, filename in metrics:
         plot_metric(rows, metric, label, args.output_dir / filename)

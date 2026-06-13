@@ -53,7 +53,9 @@ def test_got_navigation_graph_builds_nodes_and_edges() -> None:
     """GoT debe construir un grafo explícito de pensamientos."""
     env = build_default_env(seed=103, max_steps=60)
     state = env.reset(seed=103)
-    policy = GoTNavigationGraphPolicy(GoTNavigationConfig(chain_depth=2, tree_depth=1, max_tree_expansions=20))
+    policy = GoTNavigationGraphPolicy(
+        GoTNavigationConfig(chain_depth=2, tree_depth=1, max_tree_expansions=20)
+    )
 
     action, info = policy.select_action(env, state)
 
@@ -68,7 +70,9 @@ def test_rlot_navigator_update_save_and_load(tmp_path) -> None:
     """RLoT debe seleccionar bloques, actualizar Q-table y persistir estado."""
     env = build_default_env(seed=104, max_steps=60)
     state = env.reset(seed=104)
-    navigator = RLoTNavigator(RLoTNavigatorConfig(epsilon=0.0, seed=104, block_names=("ACT", "CHAIN", "REFLECT")))
+    navigator = RLoTNavigator(
+        RLoTNavigatorConfig(epsilon=0.0, seed=104, block_names=("ACT", "CHAIN", "REFLECT"))
+    )
 
     action, info = navigator.select_action(env, state, explore=False)
     assert_valid_action(action)
@@ -82,6 +86,8 @@ def test_rlot_navigator_update_save_and_load(tmp_path) -> None:
     path = tmp_path / "rlot.json"
     navigator.save(path)
 
-    loaded = RLoTNavigator(RLoTNavigatorConfig(epsilon=0.0, seed=104, block_names=("ACT", "CHAIN", "REFLECT")))
+    loaded = RLoTNavigator(
+        RLoTNavigatorConfig(epsilon=0.0, seed=104, block_names=("ACT", "CHAIN", "REFLECT"))
+    )
     loaded.load(path)
     assert loaded.q_table.keys() == navigator.q_table.keys()

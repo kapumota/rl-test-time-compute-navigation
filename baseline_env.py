@@ -9,7 +9,6 @@ from typing import Optional
 
 from map import NavigationConfig, NavigationEnv
 
-
 TITULO_PROYECTO = "¿Cuándo debe pensar un agente RL? Cómputo adaptativo en tiempo de inferencia para navegación autónoma"
 
 

@@ -79,7 +79,9 @@ def test_learned_controller_save_and_load(tmp_path) -> None:
     env = build_default_env(seed=19, max_steps=80)
     state = env.reset(seed=19)
     strategies = build_reasoning_strategies()
-    controller = LearnedReasoningController(strategies, ReasoningControllerConfig(epsilon=0.0, seed=19))
+    controller = LearnedReasoningController(
+        strategies, ReasoningControllerConfig(epsilon=0.0, seed=19)
+    )
 
     action, info = controller.select_action(env, state)
     assert_valid_action(action)

@@ -56,7 +56,9 @@ def train(
         reached_goal = False
         last_loss = None
 
-        epsilon = epsilon_end + (epsilon_start - epsilon_end) * max(0.0, 1.0 - episode / epsilon_decay)
+        epsilon = epsilon_end + (epsilon_start - epsilon_end) * max(
+            0.0, 1.0 - episode / epsilon_decay
+        )
 
         for _ in range(env.config.max_steps):
             action = agent.select_action(state, epsilon=epsilon)
@@ -107,10 +109,21 @@ def save_history(history: List[Dict[str, float]], path: Path) -> None:
 
 def parse_args() -> argparse.Namespace:
     """Lee argumentos de línea de comandos."""
-    parser = argparse.ArgumentParser(description="Entrena un agente DQN en el entorno de navegación autónoma.")
-    parser.add_argument("--episodes", type=int, default=100, help="Número de episodios de entrenamiento.")
-    parser.add_argument("--checkpoint", type=Path, default=Path("last_brain.pth"), help="Ruta del checkpoint.")
-    parser.add_argument("--results", type=Path, default=Path("results/train_history.csv"), help="Ruta del CSV de métricas.")
+    parser = argparse.ArgumentParser(
+        description="Entrena un agente DQN en el entorno de navegación autónoma."
+    )
+    parser.add_argument(
+        "--episodes", type=int, default=100, help="Número de episodios de entrenamiento."
+    )
+    parser.add_argument(
+        "--checkpoint", type=Path, default=Path("last_brain.pth"), help="Ruta del checkpoint."
+    )
+    parser.add_argument(
+        "--results",
+        type=Path,
+        default=Path("results/train_history.csv"),
+        help="Ruta del CSV de métricas.",
+    )
     parser.add_argument("--seed", type=int, default=123, help="Semilla aleatoria.")
     parser.add_argument("--max-steps", type=int, default=400, help="Máximo de pasos por episodio.")
     return parser.parse_args()

@@ -148,7 +148,9 @@ def print_summary(summary_rows: List[Dict[str, float | str]]) -> None:
     """Imprime un resumen compacto de resultados."""
     print("\nResumen de razonamiento en inferencia")
     print("-" * 108)
-    print(f"{'método':<32} {'recompensa':>12} {'éxito':>10} {'pasos':>10} {'arena':>10} {'costo/dec':>12}")
+    print(
+        f"{'método':<32} {'recompensa':>12} {'éxito':>10} {'pasos':>10} {'arena':>10} {'costo/dec':>12}"
+    )
     print("-" * 108)
     for row in summary_rows:
         print(
@@ -190,19 +192,34 @@ def build_policies(controller_path: Path | None = None) -> Dict[str, PolicyCalla
 
     # Fase 5: métodos más cercanos a RLoT y GoT.
     rlot_model_path = Path("models/rlot_navigator.json")
-    policies.update(build_rlot_and_got_policies(rlot_model_path if rlot_model_path.exists() else None))
+    policies.update(
+        build_rlot_and_got_policies(rlot_model_path if rlot_model_path.exists() else None)
+    )
     return policies
 
 
 def parse_args() -> argparse.Namespace:
     """Lee argumentos de línea de comandos."""
-    parser = argparse.ArgumentParser(description="Evalúa razonamiento en inferencia para navegación autónoma.")
-    parser.add_argument("--eval-episodes", type=int, default=5, help="Episodios de evaluación por método.")
+    parser = argparse.ArgumentParser(
+        description="Evalúa razonamiento en inferencia para navegación autónoma."
+    )
+    parser.add_argument(
+        "--eval-episodes", type=int, default=5, help="Episodios de evaluación por método."
+    )
     parser.add_argument("--max-steps", type=int, default=250, help="Máximo de pasos por episodio.")
     parser.add_argument("--seed", type=int, default=123, help="Semilla base.")
-    parser.add_argument("--results", type=Path, default=Path("results/reasoning_eval.csv"), help="CSV por episodio.")
-    parser.add_argument("--summary", type=Path, default=Path("results/reasoning_summary.csv"), help="CSV agregado.")
-    parser.add_argument("--controller", type=Path, default=Path("models/reasoning_controller.json"), help="Pesos opcionales del controlador aprendido.")
+    parser.add_argument(
+        "--results", type=Path, default=Path("results/reasoning_eval.csv"), help="CSV por episodio."
+    )
+    parser.add_argument(
+        "--summary", type=Path, default=Path("results/reasoning_summary.csv"), help="CSV agregado."
+    )
+    parser.add_argument(
+        "--controller",
+        type=Path,
+        default=Path("models/reasoning_controller.json"),
+        help="Pesos opcionales del controlador aprendido.",
+    )
     parser.add_argument(
         "--methods",
         nargs="*",
@@ -230,7 +247,9 @@ def main() -> None:
     all_rows: List[Dict[str, float | str]] = []
     for name, policy in policies.items():
         print(f"Evaluando: {name}")
-        all_rows.extend(evaluate_policy(name, policy, args.eval_episodes, args.max_steps, args.seed))
+        all_rows.extend(
+            evaluate_policy(name, policy, args.eval_episodes, args.max_steps, args.seed)
+        )
 
     summary_rows = summarize(all_rows)
     save_csv(all_rows, args.results)

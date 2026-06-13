@@ -144,7 +144,9 @@ def train_dqn(train_episodes: int, max_steps: int, seed: int) -> DQNAgent:
 
     for episode in range(1, train_episodes + 1):
         state = env.reset(seed=seed + episode)
-        epsilon = epsilon_end + (epsilon_start - epsilon_end) * max(0.0, 1.0 - episode / epsilon_decay)
+        epsilon = epsilon_end + (epsilon_start - epsilon_end) * max(
+            0.0, 1.0 - episode / epsilon_decay
+        )
         total_reward = 0.0
         for _ in range(max_steps):
             action = agent.select_action(state, epsilon=epsilon)
@@ -155,7 +157,9 @@ def train_dqn(train_episodes: int, max_steps: int, seed: int) -> DQNAgent:
             if done:
                 break
         if episode == 1 or episode % 10 == 0:
-            print(f"DQN | episodio {episode:04d} | recompensa={total_reward:8.2f} | epsilon={epsilon:.3f}")
+            print(
+                f"DQN | episodio {episode:04d} | recompensa={total_reward:8.2f} | epsilon={epsilon:.3f}"
+            )
     return agent
 
 
@@ -170,7 +174,9 @@ def train_double_dqn(train_episodes: int, max_steps: int, seed: int) -> DoubleDQ
 
     for episode in range(1, train_episodes + 1):
         state = env.reset(seed=seed + 1_000 + episode)
-        epsilon = epsilon_end + (epsilon_start - epsilon_end) * max(0.0, 1.0 - episode / epsilon_decay)
+        epsilon = epsilon_end + (epsilon_start - epsilon_end) * max(
+            0.0, 1.0 - episode / epsilon_decay
+        )
         total_reward = 0.0
         for _ in range(max_steps):
             action = agent.select_action(state, epsilon=epsilon)
@@ -181,7 +187,9 @@ def train_double_dqn(train_episodes: int, max_steps: int, seed: int) -> DoubleDQ
             if done:
                 break
         if episode == 1 or episode % 10 == 0:
-            print(f"Double DQN | episodio {episode:04d} | recompensa={total_reward:8.2f} | epsilon={epsilon:.3f}")
+            print(
+                f"Double DQN | episodio {episode:04d} | recompensa={total_reward:8.2f} | epsilon={epsilon:.3f}"
+            )
     return agent
 
 
@@ -251,7 +259,9 @@ def print_summary(summary_rows: List[Dict[str, float | str]]) -> None:
     """Imprime una tabla compacta de resultados."""
     print("\nResumen de baselines")
     print("-" * 92)
-    print(f"{'baseline':<16} {'recompensa':>12} {'éxito':>10} {'pasos':>10} {'arena':>10} {'costo/dec':>12}")
+    print(
+        f"{'baseline':<16} {'recompensa':>12} {'éxito':>10} {'pasos':>10} {'arena':>10} {'costo/dec':>12}"
+    )
     print("-" * 92)
     for row in summary_rows:
         print(
@@ -268,13 +278,34 @@ def print_summary(summary_rows: List[Dict[str, float | str]]) -> None:
 def parse_args() -> argparse.Namespace:
     """Lee argumentos de línea de comandos."""
     parser = argparse.ArgumentParser(description="Compara baselines de navegación autónoma.")
-    parser.add_argument("--train-episodes", type=int, default=30, help="Episodios de entrenamiento para DQN, Double DQN y PPO.")
-    parser.add_argument("--eval-episodes", type=int, default=10, help="Episodios de evaluación por baseline.")
+    parser.add_argument(
+        "--train-episodes",
+        type=int,
+        default=30,
+        help="Episodios de entrenamiento para DQN, Double DQN y PPO.",
+    )
+    parser.add_argument(
+        "--eval-episodes", type=int, default=10, help="Episodios de evaluación por baseline."
+    )
     parser.add_argument("--max-steps", type=int, default=400, help="Máximo de pasos por episodio.")
     parser.add_argument("--seed", type=int, default=123, help="Semilla base.")
-    parser.add_argument("--results", type=Path, default=Path("results/baselines_eval.csv"), help="CSV de evaluación por episodio.")
-    parser.add_argument("--summary", type=Path, default=Path("results/baselines_summary.csv"), help="CSV de resumen agregado.")
-    parser.add_argument("--skip-training", action="store_true", help="Evalúa solo Random y A* para una prueba rápida.")
+    parser.add_argument(
+        "--results",
+        type=Path,
+        default=Path("results/baselines_eval.csv"),
+        help="CSV de evaluación por episodio.",
+    )
+    parser.add_argument(
+        "--summary",
+        type=Path,
+        default=Path("results/baselines_summary.csv"),
+        help="CSV de resumen agregado.",
+    )
+    parser.add_argument(
+        "--skip-training",
+        action="store_true",
+        help="Evalúa solo Random y A* para una prueba rápida.",
+    )
     return parser.parse_args()
 
 
@@ -288,24 +319,40 @@ def main() -> None:
     all_rows: List[Dict[str, float | str]] = []
 
     random_policy: Policy = lambda env, state: env.sample_action()
-    all_rows.extend(evaluate_policy("Random policy", random_policy, args.eval_episodes, args.max_steps, args.seed))
+    all_rows.extend(
+        evaluate_policy(
+            "Random policy", random_policy, args.eval_episodes, args.max_steps, args.seed
+        )
+    )
 
     astar = AStarPlanner(AStarConfig(cell_size=20, sand_threshold=0.15))
     astar_policy: Policy = lambda env, state: astar.select_action(env, state)
-    all_rows.extend(evaluate_policy("A* planner", astar_policy, args.eval_episodes, args.max_steps, args.seed))
+    all_rows.extend(
+        evaluate_policy("A* planner", astar_policy, args.eval_episodes, args.max_steps, args.seed)
+    )
 
     if not args.skip_training:
         dqn = train_dqn(args.train_episodes, args.max_steps, args.seed)
         dqn_policy: Policy = lambda env, state: dqn.select_action(state, epsilon=0.0)
-        all_rows.extend(evaluate_policy("DQN original", dqn_policy, args.eval_episodes, args.max_steps, args.seed))
+        all_rows.extend(
+            evaluate_policy(
+                "DQN original", dqn_policy, args.eval_episodes, args.max_steps, args.seed
+            )
+        )
 
         double_dqn = train_double_dqn(args.train_episodes, args.max_steps, args.seed)
         double_dqn_policy: Policy = lambda env, state: double_dqn.select_action(state, epsilon=0.0)
-        all_rows.extend(evaluate_policy("Double DQN", double_dqn_policy, args.eval_episodes, args.max_steps, args.seed))
+        all_rows.extend(
+            evaluate_policy(
+                "Double DQN", double_dqn_policy, args.eval_episodes, args.max_steps, args.seed
+            )
+        )
 
         ppo = train_ppo(args.train_episodes, args.max_steps, args.seed)
         ppo_policy: Policy = lambda env, state: ppo.select_action(state, deterministic=True)
-        all_rows.extend(evaluate_policy("PPO", ppo_policy, args.eval_episodes, args.max_steps, args.seed))
+        all_rows.extend(
+            evaluate_policy("PPO", ppo_policy, args.eval_episodes, args.max_steps, args.seed)
+        )
 
     summary_rows = summarize(all_rows)
     save_csv(all_rows, args.results)

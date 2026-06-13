@@ -3,7 +3,12 @@
 from pathlib import Path
 
 from analyze_overthinking import summarize_overthinking, write_summary_csv
-from research_catalog import RESEARCH_CATALOG, markdown_table, references_by_priority, references_by_status
+from research_catalog import (
+    RESEARCH_CATALOG,
+    markdown_table,
+    references_by_priority,
+    references_by_status,
+)
 
 
 def test_research_catalog_has_core_references() -> None:
@@ -20,10 +25,34 @@ def test_research_catalog_has_core_references() -> None:
 def test_overthinking_summary_flags_high_compute() -> None:
     """Un método con mucho más coste por el mismo progreso debe quedar marcado."""
     rows = [
-        {"paso": "0", "metodo": "barato", "distancia_a_meta": "100", "recompensa_total": "0", "costo_total": "0"},
-        {"paso": "1", "metodo": "barato", "distancia_a_meta": "50", "recompensa_total": "1", "costo_total": "10"},
-        {"paso": "0", "metodo": "caro", "distancia_a_meta": "100", "recompensa_total": "0", "costo_total": "0"},
-        {"paso": "1", "metodo": "caro", "distancia_a_meta": "50", "recompensa_total": "1", "costo_total": "100"},
+        {
+            "paso": "0",
+            "metodo": "barato",
+            "distancia_a_meta": "100",
+            "recompensa_total": "0",
+            "costo_total": "0",
+        },
+        {
+            "paso": "1",
+            "metodo": "barato",
+            "distancia_a_meta": "50",
+            "recompensa_total": "1",
+            "costo_total": "10",
+        },
+        {
+            "paso": "0",
+            "metodo": "caro",
+            "distancia_a_meta": "100",
+            "recompensa_total": "0",
+            "costo_total": "0",
+        },
+        {
+            "paso": "1",
+            "metodo": "caro",
+            "distancia_a_meta": "50",
+            "recompensa_total": "1",
+            "costo_total": "100",
+        },
     ]
     summaries = {summary.metodo: summary for summary in summarize_overthinking(rows)}
     assert summaries["caro"].indice_sobrepensamiento > summaries["barato"].indice_sobrepensamiento
@@ -34,8 +63,20 @@ def test_write_overthinking_csv(tmp_path: Path) -> None:
     """El análisis debe exportarse como CSV reutilizable en el modo paper/demo."""
     summaries = summarize_overthinking(
         [
-            {"paso": "0", "metodo": "A", "distancia_a_meta": "100", "recompensa_total": "0", "costo_total": "0"},
-            {"paso": "2", "metodo": "A", "distancia_a_meta": "80", "recompensa_total": "2", "costo_total": "5"},
+            {
+                "paso": "0",
+                "metodo": "A",
+                "distancia_a_meta": "100",
+                "recompensa_total": "0",
+                "costo_total": "0",
+            },
+            {
+                "paso": "2",
+                "metodo": "A",
+                "distancia_a_meta": "80",
+                "recompensa_total": "2",
+                "costo_total": "5",
+            },
         ]
     )
     path = write_summary_csv(summaries, tmp_path / "overthinking.csv")

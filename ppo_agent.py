@@ -71,7 +71,9 @@ class PPOAgent:
         self.nb_action = int(nb_action)
         self.config = config or PPOConfig()
         self.device = torch.device(device or ("cuda" if torch.cuda.is_available() else "cpu"))
-        self.model = ActorCritic(self.input_size, self.nb_action, self.config.hidden_size).to(self.device)
+        self.model = ActorCritic(self.input_size, self.nb_action, self.config.hidden_size).to(
+            self.device
+        )
         self.optimizer = optim.Adam(self.model.parameters(), lr=self.config.learning_rate)
         self.loss_history: List[float] = []
 
@@ -108,7 +110,9 @@ class PPOAgent:
         if len(states) == 0:
             return 0.0
 
-        states_t = torch.as_tensor(np.asarray(states, dtype=np.float32), dtype=torch.float32, device=self.device)
+        states_t = torch.as_tensor(
+            np.asarray(states, dtype=np.float32), dtype=torch.float32, device=self.device
+        )
         actions_t = torch.as_tensor(actions, dtype=torch.long, device=self.device)
         old_log_probs_t = torch.as_tensor(old_log_probs, dtype=torch.float32, device=self.device)
         values_np = np.asarray(values, dtype=np.float32)
@@ -116,7 +120,9 @@ class PPOAgent:
         returns_np, advantages_np = self._compute_gae(rewards, dones, values_np)
         returns_t = torch.as_tensor(returns_np, dtype=torch.float32, device=self.device)
         advantages_t = torch.as_tensor(advantages_np, dtype=torch.float32, device=self.device)
-        advantages_t = (advantages_t - advantages_t.mean()) / (advantages_t.std(unbiased=False) + 1e-8)
+        advantages_t = (advantages_t - advantages_t.mean()) / (
+            advantages_t.std(unbiased=False) + 1e-8
+        )
 
         total_loss = 0.0
         total_updates = 0
@@ -136,10 +142,19 @@ class PPOAgent:
                 ratio = torch.exp(new_log_probs - old_log_probs_t.index_select(0, batch_idx_t))
                 adv = advantages_t.index_select(0, batch_idx_t)
                 unclipped = ratio * adv
-                clipped = torch.clamp(ratio, 1.0 - self.config.clip_epsilon, 1.0 + self.config.clip_epsilon) * adv
+                clipped = (
+                    torch.clamp(
+                        ratio, 1.0 - self.config.clip_epsilon, 1.0 + self.config.clip_epsilon
+                    )
+                    * adv
+                )
                 policy_loss = -torch.min(unclipped, clipped).mean()
                 value_loss = F.mse_loss(current_values, returns_t.index_select(0, batch_idx_t))
-                loss = policy_loss + self.config.value_coef * value_loss - self.config.entropy_coef * entropy
+                loss = (
+                    policy_loss
+                    + self.config.value_coef * value_loss
+                    - self.config.entropy_coef * entropy
+                )
 
                 self.optimizer.zero_grad(set_to_none=True)
                 loss.backward()
@@ -190,8 +205,12 @@ class PPOAgent:
 
         for t in reversed(range(len(rewards))):
             non_terminal = 0.0 if dones[t] else 1.0
-            delta = float(rewards[t]) + self.config.gamma * next_value * non_terminal - float(values[t])
-            last_advantage = delta + self.config.gamma * self.config.gae_lambda * non_terminal * last_advantage
+            delta = (
+                float(rewards[t]) + self.config.gamma * next_value * non_terminal - float(values[t])
+            )
+            last_advantage = (
+                delta + self.config.gamma * self.config.gae_lambda * non_terminal * last_advantage
+            )
             advantages[t] = last_advantage
             next_value = float(values[t])
 
@@ -202,5 +221,7 @@ class PPOAgent:
         """Convierte un estado en tensor de lote."""
         array = np.asarray(state, dtype=np.float32)
         if array.shape != (self.input_size,):
-            raise ValueError(f"El estado debe tener forma ({self.input_size},), pero llegó {array.shape}.")
+            raise ValueError(
+                f"El estado debe tener forma ({self.input_size},), pero llegó {array.shape}."
+            )
         return torch.as_tensor(array, dtype=torch.float32, device=self.device).unsqueeze(0)

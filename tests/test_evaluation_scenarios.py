@@ -14,7 +14,13 @@ from run_evaluation_suite import evaluate_policy_on_scenario, save_csv, summariz
 def test_scenarios_are_buildable() -> None:
     """Todos los escenarios estándar deben poder construirse y reiniciarse."""
     names = list_scenarios()
-    assert set(names) == {"facil", "obstaculos_densos", "cambios_de_meta", "mapas_nunca_vistos", "sensores_ruidosos"}
+    assert set(names) == {
+        "facil",
+        "obstaculos_densos",
+        "cambios_de_meta",
+        "mapas_nunca_vistos",
+        "sensores_ruidosos",
+    }
     for name in names:
         instance = build_scenario_env(name, seed=7, max_steps=20, episode=1)
         state = instance.env.reset(options=instance.reset_options)

@@ -141,7 +141,11 @@ def summarize(rows: List[Dict[str, float | str]]) -> List[Dict[str, float | str]
     summary: List[Dict[str, float | str]] = []
 
     for scenario_name, method_name in groups:
-        subset = [row for row in rows if row["escenario"] == scenario_name and row["metodo"] == method_name]
+        subset = [
+            row
+            for row in rows
+            if row["escenario"] == scenario_name and row["metodo"] == method_name
+        ]
         first = subset[0]
         item: Dict[str, float | str] = {
             "escenario": scenario_name,
@@ -192,12 +196,23 @@ def print_summary(summary_rows: List[Dict[str, float | str]]) -> None:
 
 def parse_args() -> argparse.Namespace:
     """Lee argumentos de línea de comandos."""
-    parser = argparse.ArgumentParser(description="Evalúa métodos de razonamiento en cinco escenarios de Fase 4.")
-    parser.add_argument("--eval-episodes", type=int, default=3, help="Episodios por método y escenario.")
+    parser = argparse.ArgumentParser(
+        description="Evalúa métodos de razonamiento en cinco escenarios de Fase 4."
+    )
+    parser.add_argument(
+        "--eval-episodes", type=int, default=3, help="Episodios por método y escenario."
+    )
     parser.add_argument("--max-steps", type=int, default=250, help="Máximo de pasos por episodio.")
     parser.add_argument("--seed", type=int, default=123, help="Semilla base.")
-    parser.add_argument("--results", type=Path, default=Path("results/evaluation_suite.csv"), help="CSV por episodio.")
-    parser.add_argument("--summary", type=Path, default=Path("results/evaluation_summary.csv"), help="CSV agregado.")
+    parser.add_argument(
+        "--results",
+        type=Path,
+        default=Path("results/evaluation_suite.csv"),
+        help="CSV por episodio.",
+    )
+    parser.add_argument(
+        "--summary", type=Path, default=Path("results/evaluation_summary.csv"), help="CSV agregado."
+    )
     parser.add_argument(
         "--scenarios",
         nargs="*",

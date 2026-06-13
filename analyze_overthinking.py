@@ -86,7 +86,11 @@ def summarize_overthinking(rows: Iterable[dict[str, str]]) -> list[OverthinkingS
             }
         )
 
-    finite_cpp = [float(item["compute_por_progreso"]) for item in raw if item["compute_por_progreso"] != float("inf")]
+    finite_cpp = [
+        float(item["compute_por_progreso"])
+        for item in raw
+        if item["compute_por_progreso"] != float("inf")
+    ]
     baseline = median(finite_cpp) if finite_cpp else 1.0
 
     summaries: list[OverthinkingSummary] = []
@@ -129,7 +133,11 @@ def write_summary_csv(summaries: Iterable[OverthinkingSummary], path: str | Path
     target.parent.mkdir(parents=True, exist_ok=True)
     summaries = list(summaries)
     with target.open("w", encoding="utf-8", newline="") as handle:
-        fieldnames = list(asdict(summaries[0]).keys()) if summaries else list(OverthinkingSummary.__dataclass_fields__.keys())
+        fieldnames = (
+            list(asdict(summaries[0]).keys())
+            if summaries
+            else list(OverthinkingSummary.__dataclass_fields__.keys())
+        )
         writer = csv.DictWriter(handle, fieldnames=fieldnames)
         writer.writeheader()
         for summary in summaries:
@@ -148,9 +156,15 @@ def write_summary_json(summaries: Iterable[OverthinkingSummary], path: str | Pat
 
 def parse_args() -> argparse.Namespace:
     """Argumentos de línea de comandos."""
-    parser = argparse.ArgumentParser(description="Analiza coste, progreso e índice de sobrepensamiento.")
-    parser.add_argument("--trace", type=Path, default=Path("results/paper_demo/comparison_trace.csv"))
-    parser.add_argument("--output", type=Path, default=Path("results/paper_demo/overthinking_summary.csv"))
+    parser = argparse.ArgumentParser(
+        description="Analiza coste, progreso e índice de sobrepensamiento."
+    )
+    parser.add_argument(
+        "--trace", type=Path, default=Path("results/paper_demo/comparison_trace.csv")
+    )
+    parser.add_argument(
+        "--output", type=Path, default=Path("results/paper_demo/overthinking_summary.csv")
+    )
     parser.add_argument("--json", type=Path, default=None, help="Ruta opcional para salida JSON.")
     return parser.parse_args()
 

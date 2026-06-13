@@ -180,7 +180,9 @@ class NavigationEnv(gym.Env if gym is not None else object):
 
         if reached_goal and not self.config.terminate_on_goal:
             # Modo continuo: la meta cambia de esquina, como en el código original.
-            self.goal = np.array([self.width - self.goal[0], self.height - self.goal[1]], dtype=np.float32)
+            self.goal = np.array(
+                [self.width - self.goal[0], self.height - self.goal[1]], dtype=np.float32
+            )
             distance = self._distance_to_goal()
 
         self.last_distance = distance
@@ -366,20 +368,22 @@ class NavigationEnv(gym.Env if gym is not None else object):
             self._draw_disk(image, sensor_position, radius=3, color=(220, 60, 60))
         return image
 
-    def _draw_disk(self, image: Array, position: Array, radius: int, color: Tuple[int, int, int]) -> None:
+    def _draw_disk(
+        self, image: Array, position: Array, radius: int, color: Tuple[int, int, int]
+    ) -> None:
         """Dibuja un disco pequeño en una imagen RGB."""
         x_center = int(round(position[0]))
         y_center = int(round(position[1]))
         for x in range(max(0, x_center - radius), min(self.width, x_center + radius + 1)):
             for y in range(max(0, y_center - radius), min(self.height, y_center + radius + 1)):
-                if (x - x_center) ** 2 + (y - y_center) ** 2 <= radius ** 2:
+                if (x - x_center) ** 2 + (y - y_center) ** 2 <= radius**2:
                     image[y, x] = np.array(color, dtype=np.uint8)
 
     def _paint_sand_disk(self, x_center: int, y_center: int, radius: int) -> None:
         """Pinta un disco de arena en el mapa."""
         for x in range(max(0, x_center - radius), min(self.width, x_center + radius + 1)):
             for y in range(max(0, y_center - radius), min(self.height, y_center + radius + 1)):
-                if (x - x_center) ** 2 + (y - y_center) ** 2 <= radius ** 2:
+                if (x - x_center) ** 2 + (y - y_center) ** 2 <= radius**2:
                     self.sand[x, y] = 1.0
 
     def _clip_x(self, x: int) -> int:
@@ -394,7 +398,9 @@ class NavigationEnv(gym.Env if gym is not None else object):
     def _vector_from_angle(angle_degrees: float, magnitude: float) -> Array:
         """Crea un vector 2D a partir de un ángulo en grados."""
         radians = math.radians(angle_degrees)
-        return np.array([math.cos(radians) * magnitude, math.sin(radians) * magnitude], dtype=np.float32)
+        return np.array(
+            [math.cos(radians) * magnitude, math.sin(radians) * magnitude], dtype=np.float32
+        )
 
     @staticmethod
     def _signed_angle(source: Array, target: Array) -> float:

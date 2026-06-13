@@ -40,9 +40,18 @@ def plot_metric(rows: List[Dict[str, str]], metric: str, title: str, output: Pat
 
 def parse_args() -> argparse.Namespace:
     """Lee argumentos de línea de comandos."""
-    parser = argparse.ArgumentParser(description="Grafica resultados de razonamiento en inferencia.")
-    parser.add_argument("--summary", type=Path, default=Path("results/reasoning_summary.csv"), help="CSV agregado de Fase 3.")
-    parser.add_argument("--output-dir", type=Path, default=Path("results/figures"), help="Carpeta de salida.")
+    parser = argparse.ArgumentParser(
+        description="Grafica resultados de razonamiento en inferencia."
+    )
+    parser.add_argument(
+        "--summary",
+        type=Path,
+        default=Path("results/reasoning_summary.csv"),
+        help="CSV agregado de Fase 3.",
+    )
+    parser.add_argument(
+        "--output-dir", type=Path, default=Path("results/figures"), help="Carpeta de salida."
+    )
     return parser.parse_args()
 
 
@@ -50,9 +59,21 @@ def main() -> None:
     """Genera gráficas principales."""
     args = parse_args()
     rows = read_rows(args.summary)
-    plot_metric(rows, "recompensa", "Recompensa promedio por método", args.output_dir / "reasoning_recompensa.png")
-    plot_metric(rows, "meta_alcanzada", "Tasa de éxito por método", args.output_dir / "reasoning_exito.png")
-    plot_metric(rows, "costo_decision_promedio", "Costo promedio por decisión", args.output_dir / "reasoning_costo.png")
+    plot_metric(
+        rows,
+        "recompensa",
+        "Recompensa promedio por método",
+        args.output_dir / "reasoning_recompensa.png",
+    )
+    plot_metric(
+        rows, "meta_alcanzada", "Tasa de éxito por método", args.output_dir / "reasoning_exito.png"
+    )
+    plot_metric(
+        rows,
+        "costo_decision_promedio",
+        "Costo promedio por decisión",
+        args.output_dir / "reasoning_costo.png",
+    )
     print(f"Gráficas guardadas en: {args.output_dir}")
 
 

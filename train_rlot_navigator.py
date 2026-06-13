@@ -57,7 +57,9 @@ def train(
             action, decision_info = navigator.select_action(env, state, explore=True)
             next_state, reward, done, env_info = env.step(action)
             next_state_key = None if done else navigator.discretize_state(env, next_state)
-            navigator.update_from_info(decision_info, reward=float(reward), next_state_key=next_state_key)
+            navigator.update_from_info(
+                decision_info, reward=float(reward), next_state_key=next_state_key
+            )
 
             block_name = str(decision_info.get("bloque_razonamiento", "desconocido"))
             used_blocks[block_name] = used_blocks.get(block_name, 0) + 1
@@ -81,15 +83,24 @@ def train(
 
 def parse_args() -> argparse.Namespace:
     """Lee argumentos de línea de comandos."""
-    parser = argparse.ArgumentParser(description="Entrena el navegador RL-of-Thoughts para navegación.")
+    parser = argparse.ArgumentParser(
+        description="Entrena el navegador RL-of-Thoughts para navegación."
+    )
     parser.add_argument("--episodes", type=int, default=30, help="Episodios de entrenamiento.")
     parser.add_argument("--max-steps", type=int, default=200, help="Máximo de pasos por episodio.")
     parser.add_argument("--seed", type=int, default=123, help="Semilla base.")
     parser.add_argument("--epsilon", type=float, default=0.25, help="Exploración epsilon-greedy.")
     parser.add_argument("--alpha", type=float, default=0.15, help="Tasa de aprendizaje.")
     parser.add_argument("--gamma", type=float, default=0.90, help="Descuento temporal.")
-    parser.add_argument("--cost-penalty", type=float, default=0.01, help="Penalización por costo de decisión.")
-    parser.add_argument("--output", type=Path, default=Path("models/rlot_navigator.json"), help="Ruta de salida JSON.")
+    parser.add_argument(
+        "--cost-penalty", type=float, default=0.01, help="Penalización por costo de decisión."
+    )
+    parser.add_argument(
+        "--output",
+        type=Path,
+        default=Path("models/rlot_navigator.json"),
+        help="Ruta de salida JSON.",
+    )
     return parser.parse_args()
 
 
