@@ -27,4 +27,10 @@ Cambios iniciales de la Fase A:
 - Se propaga `SeedPlan` a baselines y scripts de entrenamiento.
 - Se centraliza `set_global_seed` para entrenamiento DQN, RLoT y controlador de razonamiento.
 - Se propaga seed al dashboard para reconstruir políticas y resets reproducibles.
-- Se agrega prueba de traza reproducible para baseline aleatorio.
+- Se agrega prueba de traza reproducible para baseline aleatorio.\n\n#### A2.0 - Base de métricas de decisión
+
+- Se agrega `decision_metrics.py` para separar costo lógico y tiempo real de decisión.
+- Se introduce `costo_decision_pasos` como métrica explícita de costo simulado.
+- Se introduce `tiempo_decision_ms` como métrica explícita de tiempo real.
+- Se mantiene `costo_decision` como campo compatible con reportes previos.
+- Se agregan pruebas unitarias para conversión de tiempo, normalización de costo y compatibilidad de métricas.
